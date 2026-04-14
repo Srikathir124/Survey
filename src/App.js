@@ -23,9 +23,8 @@ function App() {
 
   return (
     <div style={styles.container}>
-      <Navbar setPage={setPage} />
-
-      <div style={styles.content}>
+    <Navbar setPage={setPage} currentPage={page} />
+      <div style={{ marginTop: "60px", padding: "20px" }}>
         {renderPage()}
       </div>
     </div>
