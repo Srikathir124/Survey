@@ -186,6 +186,9 @@ export default function OffsetIntersectionUI() {
         {/* A to Y */}
         <foreignObject x="340" y={Y.y - 15} width="80" height="30">
           <input
+            type="number"
+            inputMode="decimal"
+            step="any"
             value={C1}
             onChange={(e)=>setC1(e.target.value)}
             placeholder="A to Y"
@@ -196,6 +199,9 @@ export default function OffsetIntersectionUI() {
         {/* 1 to Y */}
         <foreignObject x="200" y={Y.y + 20} width="70" height="30">
           <input
+            type="number"
+            inputMode="decimal"
+            step="any"
             value={O1}
             onChange={(e)=>setO1(e.target.value)}
             placeholder="1 to Y"
@@ -206,6 +212,9 @@ export default function OffsetIntersectionUI() {
         {/* A to Z */}
         <foreignObject x="190" y={Z.y - 15} width="80" height="30">
           <input
+            type="number"
+            inputMode="decimal"
+            step="any"
             value={C2}
             onChange={(e)=>setC2(e.target.value)}
             placeholder="A to Z"
@@ -216,6 +225,9 @@ export default function OffsetIntersectionUI() {
         {/* 2 to Z (moved ABOVE line) */}
         <foreignObject x="360" y={Z.y - 50} width="70" height="30">
           <input
+            type="number"
+            inputMode="decimal"
+            step="any"
             value={O2}
             onChange={(e)=>setO2(e.target.value)}
             placeholder="2 to Z"
