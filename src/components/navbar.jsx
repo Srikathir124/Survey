@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 function Navbar({ setPage, currentPage }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
 
   const handleNavigation = (page) => {
     setPage(page);
@@ -16,6 +18,23 @@ function Navbar({ setPage, currentPage }) {
     padding: "10px",
   });
 
+  // 🔹 Close profile when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target)
+      ) {
+        setProfileOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <>
       {/* 🔹 Top Bar */}
@@ -26,7 +45,26 @@ function Navbar({ setPage, currentPage }) {
         >
           ☰
         </button>
+
         <span style={styles.heading}>Calculators</span>
+
+        {/* 🔹 Profile Section */}
+        <div style={styles.profileContainer} ref={profileRef}>
+          <div
+            style={styles.profileIcon}
+            onClick={() => setProfileOpen(!profileOpen)}
+          >
+            SK
+          </div>
+
+          {profileOpen && (
+            <div style={styles.profileDropdown}>
+              <div style={styles.profileName}>Sri Kathiravan</div>
+              <div style={styles.profileSub}>Field Surveyor</div>
+              <div style={styles.profileSub}>Kallakurichi</div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 🔹 Sidebar */}
@@ -76,6 +114,7 @@ const styles = {
     color: "#fff",
     display: "flex",
     alignItems: "center",
+    justifyContent: "space-between",
     padding: "0 15px",
     position: "fixed",
     width: "100%",
@@ -88,12 +127,52 @@ const styles = {
     border: "none",
     color: "#fff",
     cursor: "pointer",
-    marginRight: "10px",
   },
   heading: {
     fontSize: "18px",
     fontWeight: "bold",
+    marginLeft: "10px",
+    flex: 1,
   },
+
+  // 🔹 Profile styles
+  profileContainer: {
+    position: "relative",
+    marginRight: "30px", // 👈 pushes it slightly left
+  },
+  profileIcon: {
+    width: "36px",
+    height: "36px",
+    borderRadius: "50%",
+    background: "#4CAF50", // bright green (high contrast)
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "bold",
+    cursor: "pointer",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+  },
+  profileDropdown: {
+    position: "absolute",
+    right: 0,
+    top: "40px",
+    background: "#fff",
+    color: "#000",
+    borderRadius: "8px",
+    padding: "10px",
+    minWidth: "180px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+  },
+  profileName: {
+    fontWeight: "bold",
+    marginBottom: "5px",
+  },
+  profileSub: {
+    fontSize: "14px",
+    color: "#555",
+  },
+
   navbar: {
     position: "fixed",
     top: "60px",

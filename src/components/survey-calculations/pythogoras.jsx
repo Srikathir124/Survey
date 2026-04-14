@@ -24,11 +24,11 @@ function Pythagoras() {
     y: (A.y + B.y + C.y) / 3
   };
 
+  // 🔹 OUTER (for inputs)
   const getOffsetPoint = (p1, p2, mid, distance = 35) => {
     let dx = p2.x - p1.x;
     let dy = p2.y - p1.y;
 
-    // perpendicular vector
     let nx = -dy;
     let ny = dx;
 
@@ -36,7 +36,6 @@ function Pythagoras() {
     nx /= length;
     ny /= length;
 
-    // direction check
     const toCentroidX = centroid.x - mid.x;
     const toCentroidY = centroid.y - mid.y;
 
@@ -51,30 +50,50 @@ function Pythagoras() {
     };
   };
 
+  // 🔹 INNER (for result text)
+  const getInnerOffsetPoint = (p1, p2, mid, distance = 15) => {
+    let dx = p2.x - p1.x;
+    let dy = p2.y - p1.y;
+
+    let nx = -dy;
+    let ny = dx;
+
+    const length = Math.sqrt(nx * nx + ny * ny);
+    nx /= length;
+    ny /= length;
+
+    const toCentroidX = centroid.x - mid.x;
+    const toCentroidY = centroid.y - mid.y;
+
+    if (nx * toCentroidX + ny * toCentroidY < 0) {
+      nx = -nx;
+      ny = -ny;
+    }
+
+    return {
+      x: mid.x + nx * distance,
+      y: mid.y + ny * distance
+    };
+  };
+
   // 🔹 Midpoints
-  const midAB = {
-    x: (A.x + B.x) / 2,
-    y: (A.y + B.y) / 2
-  };
-
-  const midAC = {
-    x: (A.x + C.x) / 2,
-    y: (A.y + C.y) / 2
-  };
-
-  const midBC = {
-    x: (B.x + C.x) / 2,
-    y: (B.y + C.y) / 2
-  };
+  const midAB = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
+  const midAC = { x: (A.x + C.x) / 2, y: (A.y + C.y) / 2 };
+  const midBC = { x: (B.x + C.x) / 2, y: (B.y + C.y) / 2 };
 
   // 🔹 Angles
   const angleAB = getAngle(A, B);
   const angleAC = getAngle(A, C);
-  const angleBC = getAngle(B, C);
+  const angleBC = getAngle(C, B); // ✅ fixed
 
-  // 🔹 OUTER positions
+  // 🔹 Input positions (outside)
   const posAC = getOffsetPoint(A, C, midAC);
   const posBC = getOffsetPoint(B, C, midBC);
+
+  // 🔹 Result positions (inside)
+  const posABText = getInnerOffsetPoint(A, B, midAB);
+  const posACText = getInnerOffsetPoint(A, C, midAC);
+  const posBCText = getInnerOffsetPoint(B, C, midBC);
 
   const handleChange = (key, val) => {
     setValues({ ...values, [key]: val });
@@ -127,25 +146,57 @@ function Pythagoras() {
           <text x={B.x + 5} y={B.y + 15}>B</text>
           <text x={C.x - 10} y={C.y - 10}>C</text>
 
-          {/* Right angle marker */}
+          {/* Right angle */}
           <rect x={A.x} y={A.y - 15} width="15" height="15" fill="black" />
 
-          {/* Result inside triangle */}
-          {result.BC && (
+          {/* 🔴 Results on sides */}
+          {result.AB && (
             <text
-              x="180"
-              y="150"
+              x={posABText.x}
+              y={posABText.y}
               fill="red"
-              fontSize="16"
+              fontSize="14"
               fontWeight="bold"
               textAnchor="middle"
+              dominantBaseline="middle"
+              transform={`rotate(${angleAB}, ${posABText.x}, ${posABText.y})`}
+            >
+              {result.AB}
+            </text>
+          )}
+
+          {result.AC && (
+            <text
+              x={posACText.x}
+              y={posACText.y}
+              fill="red"
+              fontSize="14"
+              fontWeight="bold"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              transform={`rotate(${angleAC}, ${posACText.x}, ${posACText.y})`}
+            >
+              {result.AC}
+            </text>
+          )}
+
+          {result.BC && (
+            <text
+              x={posBCText.x}
+              y={posBCText.y}
+              fill="red"
+              fontSize="14"
+              fontWeight="bold"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              transform={`rotate(${angleBC}, ${posBCText.x}, ${posBCText.y})`}
             >
               {result.BC}
             </text>
           )}
         </svg>
 
-        {/* AB (bottom) */}
+        {/* AB */}
         <input
           type="number"
           placeholder="AB"
@@ -158,7 +209,7 @@ function Pythagoras() {
           }}
         />
 
-        {/* 🔥 AC (outside + aligned) */}
+        {/* AC */}
         <input
           type="number"
           placeholder="AC"
@@ -172,7 +223,7 @@ function Pythagoras() {
           }}
         />
 
-        {/* 🔥 BC (outside + aligned) */}
+        {/* BC */}
         <input
           type="number"
           placeholder="BC"
@@ -192,13 +243,8 @@ function Pythagoras() {
       <button onClick={handleCalculate} style={styles.button}>
         Calculate
       </button>
-
-      {/* Results */}
-      {result.BC && <div><b>BC (hypotenuse) = {result.BC}</b></div>}
-      {result.AB && <div><b>AB = {result.AB}</b></div>}
-      {result.AC && <div><b>AC = {result.AC}</b></div>}
     </div>
-  )
+  );
 }
 
 const styles = {
