@@ -146,8 +146,8 @@ function Nos() {
           />
 
           {/* D point */}
-          <circle cx={D.x} cy={D.y} r="4" fill="blue" />
-          <text x={D.x + 5} y={D.y - 5} fill="blue">D</text>
+          <circle cx={D.x} cy={D.y} r="4" fill="black" />
+          <text x={D.x + 5} y={D.y - 5} fill="black">D</text>
 
           {/* Labels */}
           <text x={A.x - 5} y={A.y + 15}>A</text>
@@ -311,7 +311,7 @@ const styles = {
     strokeWidth: 2
   },
   dashedLine: {
-    stroke: "blue",
+    stroke: "red",
     strokeWidth: 2,
     strokeDasharray: "5,5"
   },
