@@ -112,6 +112,14 @@ function Nos() {
     });
 
     setErrorMsg("");
+
+    if (window.gtag) {
+    window.gtag("event", "calculator_click", {
+      calculator_name: "NOS Calculator",
+      button_name: "Calculate"
+    });
+  }
+
   };
 
   // Midpoints for displaying text inside triangle

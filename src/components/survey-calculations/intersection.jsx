@@ -73,6 +73,14 @@ export default function OffsetIntersectionUI() {
     });
 
     setError("");
+    
+    if (window.gtag) {
+    window.gtag("event", "calculator_click", {
+      calculator_name: "Intersection Calculator",
+      button_name: "Intersection Calculate"
+    });
+  }
+
   };
 
   const mid = (A, B) => ({

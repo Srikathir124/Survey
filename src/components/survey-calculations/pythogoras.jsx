@@ -127,6 +127,14 @@ function Pythagoras() {
     }
 
     setResult(res);
+
+    if (window.gtag) {
+    window.gtag("event", "calculator_click", {
+      calculator_name: "Pythogoras Calculator",
+      button_name: "Pythogoras Calculate"
+    });
+  }
+
   };
 
   return (
