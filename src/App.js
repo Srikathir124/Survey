@@ -7,7 +7,7 @@ import OffsetIntersectionUI from "./components/survey-calculations/intersection"
 import UnitConversion from "./components/survey-calculations/unitconversion";
 
 function App() {
-  const [page, setPage] = useState("nos");
+  const [page, setPage] = useState("unitconversion");
 
   const renderPage = () => {
     switch (page) {
@@ -20,7 +20,7 @@ function App() {
       case "unitconversion":
         return <UnitConversion/>
       default:
-        return <Nos />;
+        return <UnitConversion />;
     }
   };
 
