@@ -46,7 +46,7 @@ function Navbar({ setPage, currentPage }) {
           ☰
         </button>
 
-        <span style={styles.heading}>Calculators</span>
+        <span style={styles.heading}>Surveyor Calculations</span>
 
         {/* 🔹 Profile Section */}
         <div style={styles.profileContainer} ref={profileRef}>
@@ -93,6 +93,13 @@ function Navbar({ setPage, currentPage }) {
           onClick={() => handleNavigation("pythagoras")}
         >
           Pythagoras Calculator
+        </button>
+
+        <button
+          style={getLinkStyle("unitconversion")}
+          onClick={() => handleNavigation("unitconversion")}
+        >
+          Unit Conversion
         </button>
       </div>
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ReactGA from "react-ga4";
 
 function Nos() {
   const A = { x: 80, y: 300 };
@@ -113,12 +114,10 @@ function Nos() {
 
     setErrorMsg("");
 
-    if (window.gtag) {
-    window.gtag("event", "calculator_click", {
-      calculator_name: "NOS Calculator",
-      button_name: "Calculate"
+    ReactGA.event({
+      category: "NOS Calculator",
+      action: "Clicked NOS Calculate Button",
     });
-  }
 
   };
 

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import ReactGA from "react-ga4";
 
 export default function OffsetIntersectionUI() {
   const [C1, setC1] = useState("");
@@ -74,12 +75,10 @@ export default function OffsetIntersectionUI() {
 
     setError("");
     
-    if (window.gtag) {
-    window.gtag("event", "calculator_click", {
-      calculator_name: "Intersection Calculator",
-      button_name: "Intersection Calculate"
+    ReactGA.event({
+      category: "Intersection Calculator",
+      action: "Clicked Intersection Calculate Button",
     });
-  }
 
   };
 

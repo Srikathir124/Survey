@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ReactGA from "react-ga4";
 
 function Pythagoras() {
   const A = { x: 60, y: 260 };
@@ -128,12 +129,11 @@ function Pythagoras() {
 
     setResult(res);
 
-    if (window.gtag) {
-    window.gtag("event", "calculator_click", {
-      calculator_name: "Pythogoras Calculator",
-      button_name: "Pythogoras Calculate"
+    
+    ReactGA.event({
+      category: "Pythogoras Calculator",
+      action: "Clicked Pythogoras Calculate Button",
     });
-  }
 
   };
 

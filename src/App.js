@@ -4,6 +4,7 @@ import Navbar from "./components/navbar";
 import Nos from "./components/survey-calculations/nos";
 import Pythagoras from "./components/survey-calculations/pythogoras";
 import OffsetIntersectionUI from "./components/survey-calculations/intersection";
+import UnitConversion from "./components/survey-calculations/unitconversion";
 
 function App() {
   const [page, setPage] = useState("nos");
@@ -16,6 +17,8 @@ function App() {
         return <Pythagoras />;
       case "intersection":
         return <OffsetIntersectionUI/>
+      case "unitconversion":
+        return <UnitConversion/>
       default:
         return <Nos />;
     }
