@@ -11,7 +11,6 @@ function AreaConversion() {
     "Hectare"
   ];
 
-  // Base unit = Square Meter
   const factors = {
     "square meter": 1,
     "square foot": 0.092903,
@@ -26,6 +25,7 @@ function AreaConversion() {
   const [value2, setValue2] = useState("");
   const [unit1, setUnit1] = useState("square meter");
   const [unit2, setUnit2] = useState("Ground");
+  const [activeInput, setActiveInput] = useState("input1");
 
   function convert(value, from, to) {
     if (value === "") return "";
@@ -33,17 +33,42 @@ function AreaConversion() {
     return (baseValue / factors[to]).toFixed(4);
   }
 
-  function firstChange(e) {
-    let val = e.target.value;
-    setValue1(val);
-    setValue2(convert(val, unit1, unit2));
-  }
+  // Handle standard typing (Desktop Mode)
+  const handlePhysicalType = (val, inputField) => {
+    // Basic validation to only allow numbers and one decimal point
+    if (val !== "" && !/^\d*\.?\d*$/.test(val)) return;
 
-  function secondChange(e) {
-    let val = e.target.value;
-    setValue2(val);
-    setValue1(convert(val, unit2, unit1));
-  }
+    if (inputField === "input1") {
+      setValue1(val);
+      setValue2(convert(val, unit1, unit2));
+    } else {
+      setValue2(val);
+      setValue1(convert(val, unit2, unit1));
+    }
+  };
+
+  // Handle touch buttons typing (Mobile Mode)
+  const handleKeypadInput = (key) => {
+    const targetValue = activeInput === "input1" ? value1 : value2;
+    let current = targetValue;
+
+    if (key === "⌫") {
+      current = current.slice(0, -1);
+    } else if (key === ".") {
+      if (current.includes(".")) return;
+      current = current === "" ? "0." : current + ".";
+    } else {
+      current = current + key;
+    }
+
+    if (activeInput === "input1") {
+      setValue1(current);
+      setValue2(convert(current, unit1, unit2));
+    } else {
+      setValue2(current);
+      setValue1(convert(current, unit2, unit1));
+    }
+  };
 
   function firstUnitChange(e) {
     let newUnit = e.target.value;
@@ -57,12 +82,12 @@ function AreaConversion() {
     setValue2(convert(value1, unit1, newUnit));
   }
 
-  // Unified event for swap unit transformations
   function swapUnits() {
     setUnit1(unit2);
     setUnit2(unit1);
     setValue1(value2);
     setValue2(value1);
+    setActiveInput(activeInput === "input1" ? "input2" : "input1");
   }
 
   return (
@@ -70,17 +95,22 @@ function AreaConversion() {
       <div className="area-card">
         <div className="area-header">
           <h2>📐 Area Conversion</h2>
-          <p className="subtitle">Land measurement converter</p>
         </div>
 
         <div className="converter-box">
           {/* FROM SECTION */}
-          <div className="unit-group">
+          <div 
+            className={`unit-group ${activeInput === "input1" ? "active" : ""}`}
+            onClick={() => setActiveInput("input1")}
+          >
+            {/* Input uses system pointer events logic to control readOnly natively */}
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               placeholder="Enter area"
               value={value1}
-              onChange={firstChange}
+              onChange={(e) => handlePhysicalType(e.target.value, "input1")}
+              className="touch-conditional-input"
             />
             <select value={unit1} onChange={firstUnitChange}>
               {units.map((u) => (
@@ -95,12 +125,17 @@ function AreaConversion() {
           </button>
 
           {/* TO SECTION */}
-          <div className="unit-group">
+          <div 
+            className={`unit-group ${activeInput === "input2" ? "active" : ""}`}
+            onClick={() => setActiveInput("input2")}
+          >
             <input
-              className="result"
-              value={value2}
-              readOnly
+              type="text"
+              inputMode="decimal"
               placeholder="Result"
+              value={value2}
+              onChange={(e) => handlePhysicalType(e.target.value, "input2")}
+              className="touch-conditional-input"
             />
             <select value={unit2} onChange={secondUnitChange}>
               {units.map((u) => (
@@ -109,8 +144,30 @@ function AreaConversion() {
             </select>
           </div>
         </div>
+
+        {/* ================= VIRTUAL KEYPAD ================= */}
+        <div className="virtual-keypad">
+          {[
+            "7", "8", "9",
+            "4", "5", "6",
+            "1", "2", "3",
+            ".", "0", "⌫"
+          ].map((key) => (
+            <button 
+              key={key} 
+              onMouseDown={(e) => {
+                e.preventDefault(); // Prevents input focus loss bouncing
+                handleKeypadInput(key);
+              }}
+              className={key === "⌫" ? "backspace-key" : ""}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* ================= STYLES ================= */}
       <style>{`
         .area-page {
           width: 100%;
@@ -120,6 +177,7 @@ function AreaConversion() {
           background: #f3f6fb;
           padding: 12px;
           box-sizing: border-box;
+          font-family: system-ui, -apple-system, sans-serif;
         }
 
         .area-card {
@@ -158,7 +216,6 @@ function AreaConversion() {
           width: 100%;
         }
 
-        /* Group cards that layout dropdowns vertically below the inputs */
         .unit-group {
           display: flex;
           flex-direction: column;
@@ -169,6 +226,13 @@ function AreaConversion() {
           padding: 10px;
           border-radius: 10px;
           border: 1px solid #e2e8f0;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .unit-group.active {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 1px #2563eb;
+          background: #ffffff;
         }
 
         input, select {
@@ -185,13 +249,6 @@ function AreaConversion() {
 
         input:focus, select:focus {
           border-color: #2563eb;
-          box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-        }
-
-        .result {
-          background: #f1f5f9;
-          font-weight: 600;
-          color: #1e293b;
         }
 
         .swap {
@@ -203,21 +260,36 @@ function AreaConversion() {
           color: white;
           font-size: 16px;
           cursor: pointer;
-          transform: rotate(90deg); /* Vertical indicator arrow configuration for mobile stacks */
+          transform: rotate(90deg);
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
           box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
-          transition: background 0.2s;
         }
 
-        .swap:hover {
-          background: #1d4ed8;
+        /* ===== RESPONSIVE KEYPAD BEHAVIORS ===== */
+        .virtual-keypad {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+          background: #f1f5f9;
+          padding: 12px;
+          border-radius: 12px;
+          width: 100%;
+          box-sizing: border-box;
+          margin-top: 16px;
         }
 
-        /* ================= DESKTOP SIDE-BY-SIDE VIEW OVERRIDES ================= */
-        @media(min-width: 550px) {
+        /* Default mobile touch behaviors for input focus rules */
+        @media (pointer: coarse) {
+          .touch-conditional-input {
+            pointer-events: none; /* Stops the OS native keyboard layout triggers */
+          }
+        }
+
+        /* ===== COARSE POINTER MEDIA QUERY (DESKTOP CONTROLS) ===== */
+        @media (pointer: fine), (min-width: 550px) {
           .converter-box {
             flex-direction: row;
             align-items: center;
@@ -229,8 +301,41 @@ function AreaConversion() {
           }
 
           .swap {
-            transform: rotate(0deg); /* Flips naturally horizontal for wide screen desktop displays */
+            transform: rotate(0deg);
           }
+
+          /* HIDES THE CUSTOM KEYPAD COMPLETELY ON DESKTOP SYSTEMS */
+          .virtual-keypad {
+            display: none !important;
+          }
+
+          .touch-conditional-input {
+            pointer-events: auto !important; /* Re-allows direct keyboard inputs smoothly */
+          }
+        }
+
+        .virtual-keypad button {
+          height: 48px;
+          background: #ffffff;
+          color: #1e293b;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          font-size: 18px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .virtual-keypad button:active {
+          background: #e2e8f0;
+        }
+
+        .virtual-keypad .backspace-key {
+          color: #ef4444;
+          font-size: 20px;
         }
       `}</style>
     </div>
