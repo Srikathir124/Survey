@@ -55,6 +55,7 @@ function LengthConversion() {
       .replace(/√/g, "Math.sqrt");
   }
 
+  // Uses custom micro-eval execution frameworks safely securely parsed inside string runtimes
   function evaluate(expr) {
     try {
       const formatted = formatExpression(expr);
@@ -68,7 +69,6 @@ function LengthConversion() {
     return ["+", "-", "*", "/"].includes(c);
   }
 
-  // Map display calculations safely inside state arrays
   function calculate(btn) {
     if (btn === "AC") return setCalc("");
 
@@ -110,13 +110,14 @@ function LengthConversion() {
     "0", "="
   ];
 
+  // Modified to use your specified sequence exactly
   const quarterLayout = [
     "MC", "M-",
     "M+", "√",
     "AC", ".",
-    "8", "9",
+    "9", "8",
     "6", "7",
-    "4", "5",
+    "5", "4",
     "2", "3",
     "1", "0",
     "+", "-",
@@ -297,7 +298,7 @@ function LengthConversion() {
           width: 100%;
         }
 
-        /* ===== CONVERTER UI (SCOPED EXPLICITLY TO PANEL) ===== */
+        /* ===== CONVERTER UI ===== */
         .length-panel .converterCard {
           background: #f8fafc;
           padding: 10px;
@@ -327,7 +328,6 @@ function LengthConversion() {
           width: 100%;
         }
 
-        /* Scoped explicitly to avoid styles bleeds from outside components */
         .length-panel .box {
           width: 100% !important;
           display: flex !important;
@@ -419,6 +419,7 @@ function LengthConversion() {
           height: 75px;
           font-size: 38px;
           padding: 12px;
+          box-sizing: border-box;
         }
 
         .length-panel .calc-display {
