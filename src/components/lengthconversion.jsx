@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 function LengthConversion() {
   const units = ["meter", "foot", "inch"];
@@ -14,15 +14,11 @@ function LengthConversion() {
   const [unit1, setUnit1] = useState("meter");
   const [unit2, setUnit2] = useState("foot");
 
-  const [panel, setPanel] = useState("quarter");
+  // Initialized to completely hidden on mount
+  const [panel, setPanel] = useState("hidden");
 
   const [calc, setCalc] = useState("");
   const [memory, setMemory] = useState(0);
-
-  // FORCE 1/4 SCREEN ON FIRST LOAD
-  useEffect(() => {
-    setPanel("quarter");
-  }, []);
 
   // ---------------- CONVERTER ----------------
 
@@ -89,7 +85,6 @@ function LengthConversion() {
       return;
     }
 
-    // Map your sequential operators safely back to display engines
     const parsedBtn = btn === "*" ? "×" : btn === "/" ? "÷" : btn;
 
     setCalc((prev) => {
@@ -134,105 +129,96 @@ function LengthConversion() {
 
   return (
     <>
-      {/* OPEN BUTTON */}
+      {/* OPEN BUTTON - Completely detached with max override layer stacking */}
       {panel === "hidden" && (
-        <button className="open-arrow" onClick={() => setPanel("quarter")}>
-          ▶
+        <button className="calculator-open-arrow" onClick={() => setPanel("quarter")}>
+          ◀
         </button>
       )}
 
-      {/* PANEL */}
-      {panel !== "hidden" && (
-        <div className={`length-panel ${panel}`}>
-
-          {/* TOOLBAR */}
-          <div className="toolbar">
-            {panel === "full" ? (
-              <button onClick={() => setPanel("quarter")}>¼</button>
-            ) : (
-              <button onClick={() => setPanel("full")}>⛶</button>
-            )}
-            <button onClick={() => setPanel("hidden")}>✕</button>
-          </div>
-
-          <div className="content">
-
-            {/* ================= CONVERTER ================= */}
-            <div className="converterCard">
-              <div className="converterRow">
-
-                <div className="box">
-                  <input
-                    type="number"
-                    value={value1}
-                    onChange={firstChange}
-                    placeholder="Enter"
-                  />
-                  <select value={unit1} onChange={changeFrom}>
-                    {units.map((u) => (
-                      <option key={u}>{u}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <button className="swapBtn">⇄</button>
-
-                <div className="box">
-                  <input value={value2} readOnly placeholder="Result" />
-                  <select value={unit2} onChange={changeTo}>
-                    {units.map((u) => (
-                      <option key={u}>{u}</option>
-                    ))}
-                  </select>
-                </div>
-
-              </div>
+      {/* PANEL CONTAINER */}
+      <div className={`length-panel ${panel}`}>
+        {panel !== "hidden" && (
+          <>
+            {/* TOOLBAR */}
+            <div className="toolbar">
+              {panel === "full" ? (
+                <button onClick={() => setPanel("quarter")}>¼</button>
+              ) : (
+                <button onClick={() => setPanel("full")}>⛶</button>
+              )}
+              <button onClick={() => setPanel("hidden")}>✕</button>
             </div>
 
-            {/* ================= CALCULATOR ================= */}
-            <div className="calculator-wrapper">
-              <div className="calculator">
+            <div className="content">
+              {/* ================= CONVERTER ================= */}
+              <div className={`converterCard ${panel}`}>
+                <div className="converterRow">
+                  <div className="box">
+                    <input
+                      type="number"
+                      value={value1}
+                      onChange={firstChange}
+                      placeholder="Enter"
+                    />
+                    <select value={unit1} onChange={changeFrom}>
+                      {units.map((u) => (
+                        <option key={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div className="calc-display">
-                  {calc || "0"}
+                  <button className="swapBtn">⇄</button>
+
+                  <div className="box">
+                    <input value={value2} readOnly placeholder="Result" />
+                    <select value={unit2} onChange={changeTo}>
+                      {units.map((u) => (
+                        <option key={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
+              </div>
 
-                <div className="memory">M: {memory}</div>
+              {/* ================= CALCULATOR ================= */}
+              <div className="calculator-wrapper">
+                <div className={`calculator ${panel}`}>
+                  <div className="calc-display">{calc || "0"}</div>
 
-                <div className={`calc-buttons ${panel === "quarter" ? "two-col" : "four-col"}`}>
-                  {currentButtons.map((btn) => {
-                    // Visual fallback for your specific array layout mapping definitions
-                    let displayLabel = btn;
-                    if (btn === "*") displayLabel = "×";
-                    if (btn === "/") displayLabel = "÷";
+                  <div className="memory">M: {memory}</div>
 
-                    // Determine grid-spanning behavior dynamically
-                    let dynamicStyle = {};
-                    if (panel === "quarter" && btn === "=") {
-                      dynamicStyle = { gridColumn: "span 2" };
-                    } else if (panel !== "quarter" && (btn === "0" || btn === "=")) {
-                      dynamicStyle = { gridColumn: "span 2" };
-                    }
+                  <div className={`calc-buttons ${panel === "quarter" ? "two-col" : "four-col"}`}>
+                    {currentButtons.map((btn) => {
+                      let displayLabel = btn;
+                      if (btn === "*") displayLabel = "×";
+                      if (btn === "/") displayLabel = "÷";
 
-                    return (
-                      <button
-                        key={btn}
-                        onClick={() => calculate(btn)}
-                        className={btn === "AC" ? "red" : ""}
-                        style={dynamicStyle}
-                      >
-                        {displayLabel}
-                      </button>
-                    );
-                  })}
+                      let dynamicStyle = {};
+                      if (panel === "quarter" && btn === "=") {
+                        dynamicStyle = { gridColumn: "span 2" };
+                      } else if (panel !== "quarter" && (btn === "0" || btn === "=")) {
+                        dynamicStyle = { gridColumn: "span 2" };
+                      }
+
+                      return (
+                        <button
+                          key={btn}
+                          onClick={() => calculate(btn)}
+                          className={btn === "AC" ? "red" : ""}
+                          style={dynamicStyle}
+                        >
+                          {displayLabel}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-
               </div>
             </div>
-
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
 
       {/* ================= STYLES ================= */}
       <style>{`
@@ -241,21 +227,31 @@ function LengthConversion() {
           right: 0;
           top: 70px;
           height: calc(100vh - 70px);
-          width: 25vw;
           background: #ffffff;
-          z-index: 9999;
-          box-shadow: -5px 0 20px rgba(0,0,0,.25);
-          overflow-y: auto;
-          overflow-x: hidden;
-          transition: 0.3s ease;
+          z-index: 99999; /* Higher baseline index layers */
+          transition: width 0.3s ease;
+          box-sizing: border-box;
+        }
+
+        .length-panel.hidden {
+          width: 0 !important;
+          box-shadow: none !important;
+          border: none !important;
+          display: none !important;
         }
 
         .length-panel.quarter {
           width: 25vw;
+          box-shadow: -5px 0 20px rgba(0,0,0,.25);
+          overflow-y: auto;
+          overflow-x: hidden;
         }
 
         .length-panel.full {
           width: 100vw;
+          box-shadow: -5px 0 20px rgba(0,0,0,.25);
+          overflow-y: auto;
+          overflow-x: hidden;
         }
 
         .toolbar {
@@ -275,70 +271,104 @@ function LengthConversion() {
           cursor: pointer;
         }
 
-        .open-arrow {
-          position: fixed;
-          right: 0;
-          top: 50%;
-          width: 50px;
-          height: 70px;
-          background: #2563eb;
-          color: white;
-          border: none;
-          border-radius: 10px 0 0 10px;
-          font-size: 20px;
-          cursor: pointer;
+        /* HARD OVERRIDE FOR OPEN BUTTON LAYER BLOCKING INTRUSIONS */
+        .calculator-open-arrow {
+          position: fixed !important;
+          right: 0 !important;
+          top: 50% !important;
+          width: 50px !important;
+          height: 70px !important;
+          background: #2563eb !important;
+          color: white !important;
+          border: 2px solid #ffffff !important; /* Contrasting stroke line */
+          border-right: none !important;
+          border-radius: 10px 0 0 10px !important;
+          font-size: 20px !important;
+          cursor: pointer !important;
+          z-index: 2147483647 !important; /* Max mathematical value override layer */
+          display: block !important;
+          box-shadow: -2px 2px 10px rgba(0,0,0,0.3) !important;
         }
 
         .content {
-          padding: 10px;
+          padding: 15px;
           display: flex;
           flex-direction: column;
-          gap: 18px;
+          gap: 24px;
         }
 
         /* ===== CONVERTER UI ===== */
         .converterCard {
           background: #f8fafc;
-          padding: 10px;
+          padding: 12px;
           border-radius: 14px;
           box-shadow: inset 0 0 0 1px #e2e8f0;
           width: 100%;
           box-sizing: border-box;
         }
 
-        .converterRow {
-          display: flex;
+        .converterCard.full {
+          padding: 24px;
+        }
+
+        .converterCard.quarter .converterRow {
           flex-direction: column;
           align-items: center;
           gap: 8px;
+        }
+
+        .converterCard.full .converterRow {
+          flex-direction: row;
+          align-items: center;
+          gap: 16px;
         }
 
         .box {
           width: 100%;
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 6px;
           box-sizing: border-box;
+        }
+
+        .converterCard.quarter input, .converterCard.quarter select {
+          padding: 6px;
+          font-size: 13px;
+        }
+
+        .converterCard.full input, .converterCard.full select {
+          padding: 14px;
+          font-size: 18px;
+          border-radius: 10px;
         }
 
         input, select {
           width: 100%;
-          padding: 6px;
-          border-radius: 8px;
           border: 1px solid #e2e8f0;
-          font-size: 13px;
           box-sizing: border-box;
         }
 
-        .swapBtn {
+        .converterCard.quarter .swapBtn {
           width: 36px;
           height: 36px;
+          font-size: 16px;
+          transform: rotate(90deg);
+        }
+
+        .converterCard.full .swapBtn {
+          width: 54px;
+          height: 54px;
+          font-size: 24px;
+          transform: rotate(0deg);
+          flex-shrink: 0;
+        }
+
+        .swapBtn {
           border-radius: 12px;
           border: none;
           background: #2563eb;
           color: white;
-          font-size: 16px;
-          transform: rotate(90deg);
+          cursor: pointer;
         }
 
         /* ===== CALCULATOR STYLES ===== */
@@ -351,18 +381,37 @@ function LengthConversion() {
 
         .calculator {
           width: 100%;
-          max-width: 260px;
           background: #292929;
-          padding: 12px;
           border-radius: 12px;
+          box-sizing: border-box;
+          transition: max-width 0.3s ease;
+        }
+
+        .calculator.quarter {
+          max-width: 260px;
+          padding: 12px;
+        }
+
+        .calculator.full {
+          max-width: 600px;
+          padding: 24px;
+        }
+
+        .calculator.quarter .calc-display {
+          height: 50px;
+          font-size: 24px;
+          padding: 6px;
+        }
+
+        .calculator.full .calc-display {
+          height: 75px;
+          font-size: 38px;
+          padding: 12px;
         }
 
         .calc-display {
           background: #d7e0c5;
-          height: 50px;
-          font-size: 24px;
           text-align: right;
-          padding: 6px;
           font-family: monospace;
           overflow-x: auto;
         }
@@ -371,12 +420,16 @@ function LengthConversion() {
           color: white;
           font-size: 12px;
           text-align: right;
-          margin: 6px 0;
+          margin: 6px 0 12px 0;
         }
 
         .calc-buttons {
           display: grid;
           gap: 6px;
+        }
+
+        .calculator.full .calc-buttons {
+          gap: 10px;
         }
 
         .calc-buttons.two-col {
@@ -387,8 +440,18 @@ function LengthConversion() {
           grid-template-columns: repeat(4, 1fr);
         }
 
-        .calc-buttons button {
+        .calculator.quarter .calc-buttons button {
           height: 38px;
+          font-size: 14px;
+        }
+
+        .calculator.full .calc-buttons button {
+          height: 56px;
+          font-size: 20px;
+          border-radius: 8px;
+        }
+
+        .calc-buttons button {
           background: #111827;
           color: white;
           border: none;
@@ -404,7 +467,7 @@ function LengthConversion() {
           .length-panel.quarter {
             width: 25vw;
           }
-          input, select {
+          .converterCard.quarter input, .converterCard.quarter select {
             font-size: 10px;
             padding: 4px;
           }

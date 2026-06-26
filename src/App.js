@@ -6,6 +6,7 @@ import Pythagoras from "./components/survey-calculations/pythogoras";
 import OffsetIntersectionUI from "./components/survey-calculations/intersection";
 import AreaConversion from "./components/survey-calculations/areaconversion";
 import LenghtConversion from "./components/lengthconversion";
+import NotesPanel from "./components/notes";
 
 function App() {
   const [page, setPage] = useState("nos");
@@ -32,6 +33,7 @@ function App() {
         {renderPage()}
       </div>
       <LenghtConversion/>
+      <NotesPanel/>
     </div>
   );
 }
