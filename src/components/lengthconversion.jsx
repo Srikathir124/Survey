@@ -14,7 +14,6 @@ function LengthConversion() {
   const [unit1, setUnit1] = useState("meter");
   const [unit2, setUnit2] = useState("foot");
 
-  // Initialized to completely hidden on mount
   const [panel, setPanel] = useState("hidden");
 
   const [calc, setCalc] = useState("");
@@ -39,6 +38,7 @@ function LengthConversion() {
     setValue2(convert(value1, u, unit2));
   }
 
+  // Unified event handlers
   function changeTo(e) {
     const u = e.target.value;
     setUnit2(u);
@@ -68,6 +68,7 @@ function LengthConversion() {
     return ["+", "-", "*", "/"].includes(c);
   }
 
+  // Map display calculations safely inside state arrays
   function calculate(btn) {
     if (btn === "AC") return setCalc("");
 
@@ -125,11 +126,9 @@ function LengthConversion() {
 
   const currentButtons = panel === "quarter" ? quarterLayout : traditionalLayout;
 
-  // ---------------- UI ----------------
-
   return (
     <>
-      {/* OPEN BUTTON - Completely detached with max override layer stacking */}
+      {/* OPEN BUTTON */}
       {panel === "hidden" && (
         <button className="calculator-open-arrow" onClick={() => setPanel("quarter")}>
           ◀
@@ -228,7 +227,7 @@ function LengthConversion() {
           top: 70px;
           height: calc(100vh - 70px);
           background: #ffffff;
-          z-index: 99999; /* Higher baseline index layers */
+          z-index: 99999;
           transition: width 0.3s ease;
           box-sizing: border-box;
         }
@@ -254,14 +253,14 @@ function LengthConversion() {
           overflow-x: hidden;
         }
 
-        .toolbar {
+        .length-panel .toolbar {
           display: flex;
           gap: 4px;
           padding: 6px;
           background: #f1f5f9;
         }
 
-        .toolbar button {
+        .length-panel .toolbar button {
           flex: 1;
           height: 36px;
           border: none;
@@ -271,7 +270,6 @@ function LengthConversion() {
           cursor: pointer;
         }
 
-        /* HARD OVERRIDE FOR OPEN BUTTON LAYER BLOCKING INTRUSIONS */
         .calculator-open-arrow {
           position: fixed !important;
           right: 0 !important;
@@ -280,82 +278,96 @@ function LengthConversion() {
           height: 70px !important;
           background: #2563eb !important;
           color: white !important;
-          border: 2px solid #ffffff !important; /* Contrasting stroke line */
+          border: 2px solid #ffffff !important;
           border-right: none !important;
           border-radius: 10px 0 0 10px !important;
           font-size: 20px !important;
           cursor: pointer !important;
-          z-index: 2147483647 !important; /* Max mathematical value override layer */
+          z-index: 2147483647 !important;
           display: block !important;
           box-shadow: -2px 2px 10px rgba(0,0,0,0.3) !important;
         }
 
-        .content {
-          padding: 15px;
+        .length-panel .content {
+          padding: 12px;
           display: flex;
           flex-direction: column;
-          gap: 24px;
+          gap: 20px;
+          box-sizing: border-box;
+          width: 100%;
         }
 
-        /* ===== CONVERTER UI ===== */
-        .converterCard {
+        /* ===== CONVERTER UI (SCOPED EXPLICITLY TO PANEL) ===== */
+        .length-panel .converterCard {
           background: #f8fafc;
-          padding: 12px;
+          padding: 10px;
           border-radius: 14px;
           box-shadow: inset 0 0 0 1px #e2e8f0;
           width: 100%;
           box-sizing: border-box;
         }
 
-        .converterCard.full {
+        .length-panel .converterCard.full {
           padding: 24px;
         }
 
-        .converterCard.quarter .converterRow {
+        .length-panel .converterCard.quarter .converterRow {
+          display: flex;
           flex-direction: column;
           align-items: center;
           gap: 8px;
+          width: 100%;
         }
 
-        .converterCard.full .converterRow {
+        .length-panel .converterCard.full .converterRow {
+          display: flex;
           flex-direction: row;
           align-items: center;
           gap: 16px;
-        }
-
-        .box {
           width: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          box-sizing: border-box;
         }
 
-        .converterCard.quarter input, .converterCard.quarter select {
+        /* Scoped explicitly to avoid styles bleeds from outside components */
+        .length-panel .box {
+          width: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 6px !important;
+          box-sizing: border-box !important;
+          background: transparent !important;
+          padding: 0 !important;
+          box-shadow: none !important;
+        }
+
+        .length-panel .converterCard.quarter input, 
+        .length-panel .converterCard.quarter select {
           padding: 6px;
           font-size: 13px;
         }
 
-        .converterCard.full input, .converterCard.full select {
+        .length-panel .converterCard.full input, 
+        .length-panel .converterCard.full select {
           padding: 14px;
           font-size: 18px;
           border-radius: 10px;
         }
 
-        input, select {
+        .length-panel input, .length-panel select {
           width: 100%;
           border: 1px solid #e2e8f0;
           box-sizing: border-box;
+          background: #ffffff;
+          border-radius: 6px;
         }
 
-        .converterCard.quarter .swapBtn {
+        .length-panel .converterCard.quarter .swapBtn {
           width: 36px;
           height: 36px;
           font-size: 16px;
           transform: rotate(90deg);
         }
 
-        .converterCard.full .swapBtn {
+        .length-panel .converterCard.full .swapBtn {
           width: 54px;
           height: 54px;
           font-size: 24px;
@@ -363,7 +375,7 @@ function LengthConversion() {
           flex-shrink: 0;
         }
 
-        .swapBtn {
+        .length-panel .swapBtn {
           border-radius: 12px;
           border: none;
           background: #2563eb;
@@ -372,104 +384,105 @@ function LengthConversion() {
         }
 
         /* ===== CALCULATOR STYLES ===== */
-        .calculator-wrapper {
+        .length-panel .calculator-wrapper {
           width: 100%;
           display: flex;
           justify-content: center;
           overflow: hidden;
+          box-sizing: border-box;
         }
 
-        .calculator {
+        .length-panel .calculator {
           width: 100%;
           background: #292929;
           border-radius: 12px;
           box-sizing: border-box;
-          transition: max-width 0.3s ease;
         }
 
-        .calculator.quarter {
-          max-width: 260px;
-          padding: 12px;
+        .length-panel .calculator.quarter {
+          max-width: 100%;
+          padding: 10px;
         }
 
-        .calculator.full {
+        .length-panel .calculator.full {
           max-width: 600px;
           padding: 24px;
         }
 
-        .calculator.quarter .calc-display {
-          height: 50px;
-          font-size: 24px;
+        .length-panel .calculator.quarter .calc-display {
+          height: 46px;
+          font-size: 22px;
           padding: 6px;
         }
 
-        .calculator.full .calc-display {
+        .length-panel .calculator.full .calc-display {
           height: 75px;
           font-size: 38px;
           padding: 12px;
         }
 
-        .calc-display {
+        .length-panel .calc-display {
           background: #d7e0c5;
           text-align: right;
           font-family: monospace;
           overflow-x: auto;
+          width: 100%;
+          box-sizing: border-box;
         }
 
-        .memory {
+        .length-panel .memory {
           color: white;
           font-size: 12px;
           text-align: right;
           margin: 6px 0 12px 0;
         }
 
-        .calc-buttons {
+        .length-panel .calc-buttons {
           display: grid;
           gap: 6px;
+          width: 100%;
         }
 
-        .calculator.full .calc-buttons {
+        .length-panel .calculator.full .calc-buttons {
           gap: 10px;
         }
 
-        .calc-buttons.two-col {
-          grid-template-columns: repeat(2, 1fr);
+        .length-panel .calc-buttons.two-col {
+          grid-template-columns: repeat(2, 1fr) !important;
         }
 
-        .calc-buttons.four-col {
-          grid-template-columns: repeat(4, 1fr);
+        .length-panel .calc-buttons.four-col {
+          grid-template-columns: repeat(4, 1fr) !important;
         }
 
-        .calculator.quarter .calc-buttons button {
-          height: 38px;
-          font-size: 14px;
+        .length-panel .calculator.quarter .calc-buttons button {
+          height: 36px;
+          font-size: 13px;
         }
 
-        .calculator.full .calc-buttons button {
+        .length-panel .calculator.full .calc-buttons button {
           height: 56px;
           font-size: 20px;
           border-radius: 8px;
         }
 
-        .calc-buttons button {
+        .length-panel .calc-buttons button {
           background: #111827;
           color: white;
           border: none;
           border-radius: 6px;
           cursor: pointer;
+          width: 100%;
+          box-sizing: border-box;
         }
 
-        .red {
+        .length-panel .red {
           background: #b91c1c !important;
         }
 
         @media (max-width: 600px) {
           .length-panel.quarter {
             width: 25vw;
-          }
-          .converterCard.quarter input, .converterCard.quarter select {
-            font-size: 10px;
-            padding: 4px;
           }
         }
       `}</style>
