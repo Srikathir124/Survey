@@ -4,10 +4,11 @@ import Navbar from "./components/navbar";
 import Nos from "./components/survey-calculations/nos";
 import Pythagoras from "./components/survey-calculations/pythogoras";
 import OffsetIntersectionUI from "./components/survey-calculations/intersection";
-import UnitConversion from "./components/survey-calculations/unitconversion";
+import AreaConversion from "./components/survey-calculations/areaconversion";
+import LenghtConversion from "./components/lengthconversion";
 
 function App() {
-  const [page, setPage] = useState("unitconversion");
+  const [page, setPage] = useState("nos");
 
   const renderPage = () => {
     switch (page) {
@@ -17,19 +18,20 @@ function App() {
         return <Pythagoras />;
       case "intersection":
         return <OffsetIntersectionUI/>
-      case "unitconversion":
-        return <UnitConversion/>
+      case "areaconversion":
+        return <AreaConversion/>
       default:
-        return <UnitConversion />;
+        return <Nos/>;
     }
   };
 
   return (
     <div style={styles.container}>
-    <Navbar setPage={setPage} currentPage={page} />
+      <Navbar setPage={setPage} currentPage={page} />
       <div style={{ marginTop: "60px", padding: "20px" }}>
         {renderPage()}
       </div>
+      <LenghtConversion/>
     </div>
   );
 }

@@ -74,13 +74,6 @@ function Navbar({ setPage, currentPage }) {
           left: isOpen ? "0" : "-240px",
         }}
       >
-
-        <button
-          style={getLinkStyle("unitconversion")}
-          onClick={() => handleNavigation("unitconversion")}
-        >
-          Unit Conversion
-        </button>
         <button
           style={getLinkStyle("nos")}
           onClick={() => handleNavigation("nos")}
@@ -101,7 +94,14 @@ function Navbar({ setPage, currentPage }) {
         >
           Pythagoras Calculator
         </button>
+        
 
+        <button
+          style={getLinkStyle("areaconversion")}
+          onClick={() => handleNavigation("areaconversion")}
+        >
+          Area Conversion
+        </button>
       </div>
 
       {/* 🔹 Overlay */}
