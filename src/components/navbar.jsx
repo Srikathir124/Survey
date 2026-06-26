@@ -78,21 +78,21 @@ function Navbar({ setPage, currentPage }) {
           style={getLinkStyle("nos")}
           onClick={() => handleNavigation("nos")}
         >
-          NOS Calculator
+          NOS Calculation
         </button>
 
         <button
           style={getLinkStyle("intersection")}
           onClick={() => handleNavigation("intersection")}
         >
-          Intersection Calculator
+          Intersection Calculation
         </button>
 
         <button
           style={getLinkStyle("pythagoras")}
           onClick={() => handleNavigation("pythagoras")}
         >
-          Pythagoras Calculator
+          Pythagoras Calculation
         </button>
         
 

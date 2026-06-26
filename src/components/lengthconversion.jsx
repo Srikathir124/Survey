@@ -14,7 +14,7 @@ function LengthConversion() {
   const [unit1, setUnit1] = useState("meter");
   const [unit2, setUnit2] = useState("foot");
 
-  const [panel, setPanel] = useState("hidden");
+  const [panel, setPanel] = useState("quarter");
 
   const [calc, setCalc] = useState("");
   const [memory, setMemory] = useState(0);
