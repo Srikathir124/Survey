@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import ReactGA from "react-ga4";
 
 function Navbar({ setPage, currentPage }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,6 +9,10 @@ function Navbar({ setPage, currentPage }) {
   const handleNavigation = (page) => {
     setPage(page);
     setIsOpen(false);
+    ReactGA.event({
+      category: "Page Navigation",
+      action: page +"Navigation Button",
+    });
   };
 
   const getLinkStyle = (page) => ({
@@ -100,7 +105,7 @@ function Navbar({ setPage, currentPage }) {
           style={getLinkStyle("areaconversion")}
           onClick={() => handleNavigation("areaconversion")}
         >
-          Area Conversion
+          Unit Conversion
         </button>
       </div>
 
