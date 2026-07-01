@@ -22,7 +22,7 @@ function LengthConversion() {
   // Ref to target the display element for auto-scrolling
   const displayRef = useRef(null);
 
-  // Auto-scrolls to the right whenever the text changes
+  // Robust auto-scroll hook that handles web/desktop containers cleanly
   useEffect(() => {
     if (displayRef.current) {
       displayRef.current.scrollLeft = displayRef.current.scrollWidth;
@@ -209,12 +209,13 @@ function LengthConversion() {
               <div className="calculator-wrapper">
                 <div className={`calculator ${panel}`}>
                   
-                  {/* Changed from <input> to a scrollable <div> label */}
-                  <div 
-                    ref={displayRef} 
-                    className="calc-display"
-                  >
-                    {calc || "0"}
+                  <div className="calc-display-wrapper">
+                    <div 
+                      ref={displayRef} 
+                      className="calc-display"
+                    >
+                      {calc || "0"}
+                    </div>
                   </div>
 
                   <div className="memory">M: {memory}</div>
@@ -224,7 +225,11 @@ function LengthConversion() {
                       let displayLabel = btn;
                       if (btn === "*") displayLabel = "×";
                       if (btn === "/") displayLabel = "÷";
+                      if (btn === ".") {
+                        displayLabel = <span className="big-dot">•</span>;
+                      }
 
+                      // Dynamic alignment logic for grid rules
                       let dynamicStyle = {};
                       if (panel === "quarter" && btn === "=") {
                         dynamicStyle = { gridColumn: "span 2" };
@@ -232,11 +237,18 @@ function LengthConversion() {
                         dynamicStyle = { gridColumn: "span 2" };
                       }
 
+                      // Check if the current button is one of the target math operators
+                      const isMathOperator = ["+", "-", "*", "/", "×", "÷"].includes(btn);
+                      let buttonClass = btn === "AC" ? "red" : "";
+                      if (isMathOperator) {
+                        buttonClass += " btn-operator";
+                      }
+
                       return (
                         <button
                           key={btn}
                           onClick={() => calculate(btn)}
-                          className={btn === "AC" ? "red" : ""}
+                          className={buttonClass.trim()}
                           style={dynamicStyle}
                         >
                           {displayLabel}
@@ -369,7 +381,7 @@ function LengthConversion() {
           padding: 0 !important;
           box-shadow: none !important;
         }
-
+          
         .length-panel .converterCard.quarter input, 
         .length-panel .converterCard.quarter select {
           padding: 6px;
@@ -441,38 +453,48 @@ function LengthConversion() {
           padding: 24px;
         }
 
+        .length-panel .calc-display-wrapper {
+          width: 100%;
+          background: #d7e0c5;
+          border-radius: 4px;
+          overflow: hidden;
+          box-sizing: border-box;
+        }
+
         .length-panel .calculator.quarter .calc-display {
           height: 46px;
           font-size: 22px;
-          padding: 12px 6px;
+          line-height: 46px;
         }
 
         .length-panel .calculator.full .calc-display {
           height: 75px;
           font-size: 38px;
-          padding: 16px 12px;
+          line-height: 75px;
         }
 
         .length-panel .calc-display {
-          background: #d7e0c5;
-          text-align: right;
           font-family: monospace;
           width: 100%;
           box-sizing: border-box;
-          transition: all 0.2s ease-in-out;
-          border: none;
-          outline: none;
-          
-          /* Updated: custom scroll setups for the standard div element */
-          overflow-x: auto;
-          white-space: nowrap;
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          -webkit-overflow-scrolling: touch; /* Butter-smooth scrolling on mobile browsers */
+          transition: background 0.2s ease-in-out;
+          padding: 0 12px;
+          text-align: right;            
+          overflow-x: auto;             
+          overflow-y: hidden;           
+          white-space: nowrap;          
+          -webkit-overflow-scrolling: touch;
         }
 
-        .length-panel .calc-display:hover {
+        .length-panel .calc-display::-webkit-scrollbar {
+          display: none;
+        }
+        .length-panel .calc-display {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        .length-panel .calc-display-wrapper:hover .calc-display {
           background: #c9d4b3;
           box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
         }
@@ -523,6 +545,30 @@ function LengthConversion() {
           cursor: pointer;
           width: 100%;
           box-sizing: border-box;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        /* Operator-specific style override (Bigger font, orange background) */
+        .length-panel .btn-operator {
+          background-color: #f97316 !important; /* Bold accessible orange */
+          font-weight: bold !important;
+        }
+
+        .length-panel .calculator.quarter .btn-operator {
+          font-size: 1.5rem !important; /* ~22px upsized indicator for mobile quarter layouts */
+        }
+
+        .length-panel .calculator.full .btn-operator {
+          font-size: 1.8rem !important; /* ~28px upsized indicator for expanded view layouts */
+        }
+
+        .length-panel .big-dot {
+          font-size: 1.5rem;
+          line-height: 1;
+          display: inline-block;
+          transform: translateY(-2px);
         }
 
         .length-panel .red {
