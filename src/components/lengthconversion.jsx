@@ -257,6 +257,7 @@ function LengthConversion() {
               </div>
 
               {/* ================= CALCULATOR ================= */}
+             {/* ================= CALCULATOR ================= */}
               <div className="calculator-wrapper">
                 <div className={`calculator ${panel}`}>
                   <input
@@ -264,8 +265,9 @@ function LengthConversion() {
                     type="text"
                     className="calc-display"
                     value={calc}
-                    onChange={(e) => setCalc(e.target.value)}
                     placeholder="0"
+                    onChange={(e) => setCalc(e.target.value)} // Keep this so state and cursor tracking stay synced
+                    inputMode="none" // Tells mobile devices: "Focus the field and show the cursor, but keep the keyboard hidden"
                   />
 
                   <div className="memory">M: {memory}</div>
