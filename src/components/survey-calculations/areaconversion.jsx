@@ -25,7 +25,6 @@ function AreaConversion() {
   const [value2, setValue2] = useState("");
   const [unit1, setUnit1] = useState("square meter");
   const [unit2, setUnit2] = useState("Ground");
-  const [activeInput, setActiveInput] = useState("input1");
 
   function convert(value, from, to) {
     if (value === "") return "";
@@ -33,24 +32,16 @@ function AreaConversion() {
     return (baseValue / factors[to]).toFixed(4);
   }
 
-  // Handle standard typing (Desktop Mode)
-  const handlePhysicalType = (val, inputField) => {
-    // Basic validation to only allow numbers and one decimal point
+  // Handle standard typing (Desktop Mode) for the first input box only
+  const handlePhysicalType = (val) => {
     if (val !== "" && !/^\d*\.?\d*$/.test(val)) return;
-
-    if (inputField === "input1") {
-      setValue1(val);
-      setValue2(convert(val, unit1, unit2));
-    } else {
-      setValue2(val);
-      setValue1(convert(val, unit2, unit1));
-    }
+    setValue1(val);
+    setValue2(convert(val, unit1, unit2));
   };
 
-  // Handle touch buttons typing (Mobile Mode)
+  // Handle touch buttons typing (Mobile Mode) targeting input1 exclusively
   const handleKeypadInput = (key) => {
-    const targetValue = activeInput === "input1" ? value1 : value2;
-    let current = targetValue;
+    let current = value1;
 
     if (key === "⌫") {
       current = current.slice(0, -1);
@@ -61,13 +52,8 @@ function AreaConversion() {
       current = current + key;
     }
 
-    if (activeInput === "input1") {
-      setValue1(current);
-      setValue2(convert(current, unit1, unit2));
-    } else {
-      setValue2(current);
-      setValue1(convert(current, unit2, unit1));
-    }
+    setValue1(current);
+    setValue2(convert(current, unit1, unit2));
   };
 
   function firstUnitChange(e) {
@@ -83,11 +69,13 @@ function AreaConversion() {
   }
 
   function swapUnits() {
+    const tempUnit = unit1;
     setUnit1(unit2);
-    setUnit2(unit1);
+    setUnit2(tempUnit);
+    
+    // Setting value2 to value1 since it's now our main driver
     setValue1(value2);
-    setValue2(value1);
-    setActiveInput(activeInput === "input1" ? "input2" : "input1");
+    setValue2(convert(value2, unit2, tempUnit));
   }
 
   return (
@@ -98,18 +86,14 @@ function AreaConversion() {
         </div>
 
         <div className="converter-box">
-          {/* FROM SECTION */}
-          <div 
-            className={`unit-group ${activeInput === "input1" ? "active" : ""}`}
-            onClick={() => setActiveInput("input1")}
-          >
-            {/* Input uses system pointer events logic to control readOnly natively */}
+          {/* FROM SECTION (First Box - Active Input) */}
+          <div className="unit-group active">
             <input
               type="text"
               inputMode="decimal"
               placeholder="Enter area"
               value={value1}
-              onChange={(e) => handlePhysicalType(e.target.value, "input1")}
+              onChange={(e) => handlePhysicalType(e.target.value)}
               className="touch-conditional-input"
             />
             <select value={unit1} onChange={firstUnitChange}>
@@ -124,19 +108,11 @@ function AreaConversion() {
             ⇄
           </button>
 
-          {/* TO SECTION */}
-          <div 
-            className={`unit-group ${activeInput === "input2" ? "active" : ""}`}
-            onClick={() => setActiveInput("input2")}
-          >
-            <input
-              type="text"
-              inputMode="decimal"
-              placeholder="Result"
-              value={value2}
-              onChange={(e) => handlePhysicalType(e.target.value, "input2")}
-              className="touch-conditional-input"
-            />
+          {/* TO SECTION (Second Box - Red Label Field) */}
+          <div className="unit-group-output">
+            <div className="red-label-output">
+              {value2 !== "" ? value2 : <span className="label-placeholder">Result</span>}
+            </div>
             <select value={unit2} onChange={secondUnitChange}>
               {units.map((u) => (
                 <option key={u}>{u}</option>
@@ -156,7 +132,7 @@ function AreaConversion() {
             <button 
               key={key} 
               onMouseDown={(e) => {
-                e.preventDefault(); // Prevents input focus loss bouncing
+                e.preventDefault(); 
                 handleKeypadInput(key);
               }}
               className={key === "⌫" ? "backspace-key" : ""}
@@ -202,12 +178,6 @@ function AreaConversion() {
           font-weight: 600;
         }
 
-        .subtitle {
-          color: #6b7280;
-          margin: 4px 0 0 0;
-          font-size: 12px;
-        }
-
         .converter-box {
           display: flex;
           flex-direction: column;
@@ -226,13 +196,45 @@ function AreaConversion() {
           padding: 10px;
           border-radius: 10px;
           border: 1px solid #e2e8f0;
-          transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .unit-group.active {
           border-color: #2563eb;
           box-shadow: 0 0 0 1px #2563eb;
           background: #ffffff;
+        }
+
+        /* Red Label Component Styling Container */
+        .unit-group-output {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          width: 100%;
+          box-sizing: border-box;
+          background: #fff5f5;
+          padding: 10px;
+          border-radius: 10px;
+          border: 1px solid #fee2e2;
+        }
+
+        .red-label-output {
+          width: 100%;
+          padding: 10px 12px;
+          font-size: 14px;
+          font-weight: 600;
+          border-radius: 6px;
+          border: 1px solid #fca5a5;
+          background: #ffebeb;
+          color: #dc2626;
+          box-sizing: border-box;
+          height: 40px;
+          display: flex;
+          align-items: center;
+        }
+
+        .label-placeholder {
+          color: #f87171;
+          font-weight: 400;
         }
 
         input, select {
@@ -281,10 +283,10 @@ function AreaConversion() {
           margin-top: 16px;
         }
 
-        /* Default mobile touch behaviors for input focus rules */
+        /* Default mobile touch behaviors for first input only */
         @media (pointer: coarse) {
           .touch-conditional-input {
-            pointer-events: none; /* Stops the OS native keyboard layout triggers */
+            pointer-events: none; 
           }
         }
 
@@ -296,7 +298,7 @@ function AreaConversion() {
             gap: 14px;
           }
 
-          .unit-group {
+          .unit-group, .unit-group-output {
             flex: 1;
           }
 
@@ -304,13 +306,12 @@ function AreaConversion() {
             transform: rotate(0deg);
           }
 
-          /* HIDES THE CUSTOM KEYPAD COMPLETELY ON DESKTOP SYSTEMS */
           .virtual-keypad {
             display: none !important;
           }
 
           .touch-conditional-input {
-            pointer-events: auto !important; /* Re-allows direct keyboard inputs smoothly */
+            pointer-events: auto !important;
           }
         }
 
