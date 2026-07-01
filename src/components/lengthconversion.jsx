@@ -557,7 +557,7 @@ function LengthConversion() {
         }
 
         .length-panel .calculator.quarter .btn-operator {
-          font-size: 1.5rem !important; /* ~22px upsized indicator for mobile quarter layouts */
+          font-size: 1.0rem !important; /* ~22px upsized indicator for mobile quarter layouts */
         }
 
         .length-panel .calculator.full .btn-operator {
