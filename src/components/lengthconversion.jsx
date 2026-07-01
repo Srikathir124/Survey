@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 function LengthConversion() {
   const units = ["meter", "foot", "inch"];
@@ -19,6 +19,9 @@ function LengthConversion() {
   const [calc, setCalc] = useState("");
   const [memory, setMemory] = useState(0);
 
+  // Ref to track the cursor position inside the input display field
+  const displayRef = useRef(null);
+
   // ---------------- CONVERTER ----------------
 
   function convert(value, from, to) {
@@ -38,7 +41,6 @@ function LengthConversion() {
     setValue2(convert(value1, u, unit2));
   }
 
-  // Unified event handlers
   function changeTo(e) {
     const u = e.target.value;
     setUnit2(u);
@@ -51,66 +53,139 @@ function LengthConversion() {
     return expr
       .replace(/×/g, "*")
       .replace(/÷/g, "/")
-      .replace(/%/g, "/100")
       .replace(/√/g, "Math.sqrt");
   }
 
-  // Uses custom micro-eval execution frameworks safely securely parsed inside string runtimes
   function evaluate(expr) {
     try {
-      const formatted = formatExpression(expr);
-      return Function(`"use strict"; return (${formatted})`)();
+      // Auto-close open parentheses for square roots if user forgot them before hitting "="
+      let sanitized = expr;
+      const openCount = (sanitized.match(/\(/g) || []).length;
+      const closeCount = (sanitized.match(/\)/g) || []).length;
+      if (openCount > closeCount) {
+        sanitized += ")".repeat(openCount - closeCount);
+      }
+
+      const formatted = formatExpression(sanitized);
+      const result = Function(`"use strict"; return (${formatted})`)();
+      return result === undefined || isNaN(result) ? "Error" : result;
     } catch {
       return "Error";
     }
   }
 
   function isOperator(c) {
-    return ["+", "-", "*", "/"].includes(c);
+    return ["+", "-", "*", "/", "×", "÷"].includes(c);
   }
 
   function calculate(btn) {
     if (btn === "AC") return setCalc("");
 
     if (btn === "MC") return setMemory(0);
-    if (btn === "M+") return setMemory((m) => m + Number(calc || 0));
-    if (btn === "M-") return setMemory((m) => m - Number(calc || 0));
+    if (btn === "M+") return setMemory((m) => m + Number(evaluate(calc) || 0));
+    if (btn === "M-") return setMemory((m) => m - Number(evaluate(calc) || 0));
 
-    if (btn === "√") {
-      setCalc((p) => `√(${p || "0"})`);
+    // Get current cursor selection ranges
+    let startPos = calc.length;
+    let endPos = calc.length;
+    if (displayRef.current) {
+      startPos = displayRef.current.selectionStart;
+      endPos = displayRef.current.selectionEnd;
+    }
+
+    // 1. Backspace logic targeting current cursor position
+    if (btn === "⌫") {
+      let nextCalc = calc;
+      let nextCursor = startPos;
+
+      if (startPos !== endPos) {
+        // If a block of text is highlighted, delete the block
+        nextCalc = calc.slice(0, startPos) + calc.slice(endPos);
+        nextCursor = startPos;
+      } else if (startPos > 0) {
+        // Delete single character behind cursor position
+        nextCalc = calc.slice(0, startPos - 1) + calc.slice(startPos);
+        nextCursor = startPos - 1;
+      }
+
+      setCalc(nextCalc);
+      // Retain active cursor focus at deletion point
+      setTimeout(() => {
+        if (displayRef.current) {
+          displayRef.current.focus();
+          displayRef.current.setSelectionRange(nextCursor, nextCursor);
+        }
+      }, 0);
       return;
     }
 
+    // 2. Square Root placement logic at cursor position
+    if (btn === "√") {
+      const insertion = "√(";
+      const nextCalc = calc.slice(0, startPos) + insertion + calc.slice(endPos);
+      setCalc(nextCalc);
+      setTimeout(() => {
+        if (displayRef.current) {
+          displayRef.current.focus();
+          displayRef.current.setSelectionRange(startPos + 2, startPos + 2);
+        }
+      }, 0);
+      return;
+    }
+
+    // 3. Evaluation logic
     if (btn === "=") {
       setCalc(String(evaluate(calc)));
       return;
     }
 
+    // Normalizing functional labels
     const parsedBtn = btn === "*" ? "×" : btn === "/" ? "÷" : btn;
 
-    setCalc((prev) => {
-      const last = prev.slice(-1);
+    // Safety checks for double decimals
+    if (parsedBtn === ".") {
+      const leftString = calc.slice(0, startPos);
+      const lastNumberChunk = leftString.split(/[\+\-\*\/×÷\(\)]/).pop();
+      if (lastNumberChunk.includes(".")) return; // block duplicate point inside number
+    }
 
-      if (isOperator(last) && isOperator(parsedBtn)) {
-        return prev.slice(0, -1) + parsedBtn;
+    // 4. Operator swap validation at cursor location
+    let leftSide = calc.slice(0, startPos);
+    let rightSide = calc.slice(endPos);
+
+    if (isOperator(parsedBtn) && leftSide.length > 0) {
+      const lastChar = leftSide.slice(-1);
+      if (isOperator(lastChar)) {
+        // Swap back-to-back operators
+        leftSide = leftSide.slice(0, -1);
+        startPos -= 1;
       }
+    }
 
-      return prev + parsedBtn;
-    });
+    const finalCalc = leftSide + parsedBtn + rightSide;
+    setCalc(finalCalc);
+
+    // Reposition cursor instantly forward one character item
+    const nextCursorLocation = startPos + parsedBtn.length;
+    setTimeout(() => {
+      if (displayRef.current) {
+        displayRef.current.focus();
+        displayRef.current.setSelectionRange(nextCursorLocation, nextCursorLocation);
+      }
+    }, 0);
   }
 
   // ---------------- LAYOUT ARRAYS ----------------
 
   const traditionalLayout = [
     "MC", "M-", "M+", "√",
-    "AC", "%", "÷", "×",
+    "AC", "⌫", "÷", "×",
     "7", "8", "9", "-",
     "4", "5", "6", "+",
     "1", "2", "3", ".",
     "0", "="
   ];
 
-  // Modified to use your specified sequence exactly
   const quarterLayout = [
     "MC", "M-",
     "M+", "√",
@@ -184,7 +259,14 @@ function LengthConversion() {
               {/* ================= CALCULATOR ================= */}
               <div className="calculator-wrapper">
                 <div className={`calculator ${panel}`}>
-                  <div className="calc-display">{calc || "0"}</div>
+                  <input
+                    ref={displayRef}
+                    type="text"
+                    className="calc-display"
+                    value={calc}
+                    onChange={(e) => setCalc(e.target.value)}
+                    placeholder="0"
+                  />
 
                   <div className="memory">M: {memory}</div>
 
@@ -397,6 +479,7 @@ function LengthConversion() {
           background: #292929;
           border-radius: 12px;
           box-sizing: border-box;
+          padding: 10px;
         }
 
         .length-panel .calculator.quarter {
@@ -419,16 +502,22 @@ function LengthConversion() {
           height: 75px;
           font-size: 38px;
           padding: 12px;
-          box-sizing: border-box;
         }
 
         .length-panel .calc-display {
           background: #d7e0c5;
           text-align: right;
           font-family: monospace;
-          overflow-x: auto;
           width: 100%;
           box-sizing: border-box;
+          transition: all 0.2s ease-in-out;
+          border: none;
+          outline: none;
+        }
+
+        .length-panel .calc-display:hover, .length-panel .calc-display:focus {
+          background: #c9d4b3;
+          box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
         }
 
         .length-panel .memory {

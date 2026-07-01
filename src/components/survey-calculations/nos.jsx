@@ -115,8 +115,8 @@ function Nos() {
     setErrorMsg("");
 
     ReactGA.event({
-      category: "NOS Calculator",
-      action: "Clicked NOS Calculate Button",
+      category: "Calculate",
+      action: "Calculate NOS Button",
     });
 
   };

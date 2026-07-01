@@ -10,8 +10,8 @@ function Navbar({ setPage, currentPage }) {
     setPage(page);
     setIsOpen(false);
     ReactGA.event({
-      category: "Page Navigation",
-      action: page +"Navigation Button",
+      category: "Navigation",
+      action: page +"Navigation",
     });
   };
 

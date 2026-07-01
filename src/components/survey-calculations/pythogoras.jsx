@@ -131,8 +131,8 @@ function Pythagoras() {
 
     
     ReactGA.event({
-      category: "Pythogoras Calculator",
-      action: "Clicked Pythogoras Calculate Button",
+      category: "Calculate",
+      action: "Calculate Pythogoras Button",
     });
 
   };

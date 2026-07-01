@@ -76,8 +76,8 @@ export default function OffsetIntersectionUI() {
     setError("");
     
     ReactGA.event({
-      category: "Intersection Calculator",
-      action: "Clicked Intersection Calculate Button",
+      category: "Calculate",
+      action: "Calculate Intersection Button",
     });
 
   };
