@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 function LengthConversion() {
   const units = ["meter", "foot", "inch"];
@@ -19,8 +19,15 @@ function LengthConversion() {
   const [calc, setCalc] = useState("");
   const [memory, setMemory] = useState(0);
 
-  // Ref to track the cursor position inside the input display field
+  // Ref to target the display element for auto-scrolling
   const displayRef = useRef(null);
+
+  // Auto-scrolls to the right whenever the text changes
+  useEffect(() => {
+    if (displayRef.current) {
+      displayRef.current.scrollLeft = displayRef.current.scrollWidth;
+    }
+  }, [calc]);
 
   // ---------------- CONVERTER ----------------
 
@@ -58,7 +65,6 @@ function LengthConversion() {
 
   function evaluate(expr) {
     try {
-      // Auto-close open parentheses for square roots if user forgot them before hitting "="
       let sanitized = expr;
       const openCount = (sanitized.match(/\(/g) || []).length;
       const closeCount = (sanitized.match(/\)/g) || []).length;
@@ -85,94 +91,37 @@ function LengthConversion() {
     if (btn === "M+") return setMemory((m) => m + Number(evaluate(calc) || 0));
     if (btn === "M-") return setMemory((m) => m - Number(evaluate(calc) || 0));
 
-    // Get current cursor selection ranges
-    let startPos = calc.length;
-    let endPos = calc.length;
-    if (displayRef.current) {
-      startPos = displayRef.current.selectionStart;
-      endPos = displayRef.current.selectionEnd;
-    }
-
-    // 1. Backspace logic targeting current cursor position
     if (btn === "⌫") {
-      let nextCalc = calc;
-      let nextCursor = startPos;
-
-      if (startPos !== endPos) {
-        // If a block of text is highlighted, delete the block
-        nextCalc = calc.slice(0, startPos) + calc.slice(endPos);
-        nextCursor = startPos;
-      } else if (startPos > 0) {
-        // Delete single character behind cursor position
-        nextCalc = calc.slice(0, startPos - 1) + calc.slice(startPos);
-        nextCursor = startPos - 1;
-      }
-
-      setCalc(nextCalc);
-      // Retain active cursor focus at deletion point
-      setTimeout(() => {
-        if (displayRef.current) {
-          displayRef.current.focus();
-          displayRef.current.setSelectionRange(nextCursor, nextCursor);
-        }
-      }, 0);
+      setCalc((prev) => prev.slice(0, -1));
       return;
     }
 
-    // 2. Square Root placement logic at cursor position
     if (btn === "√") {
-      const insertion = "√(";
-      const nextCalc = calc.slice(0, startPos) + insertion + calc.slice(endPos);
-      setCalc(nextCalc);
-      setTimeout(() => {
-        if (displayRef.current) {
-          displayRef.current.focus();
-          displayRef.current.setSelectionRange(startPos + 2, startPos + 2);
-        }
-      }, 0);
+      setCalc((prev) => prev + "√(");
       return;
     }
 
-    // 3. Evaluation logic
     if (btn === "=") {
       setCalc(String(evaluate(calc)));
       return;
     }
 
-    // Normalizing functional labels
     const parsedBtn = btn === "*" ? "×" : btn === "/" ? "÷" : btn;
 
-    // Safety checks for double decimals
     if (parsedBtn === ".") {
-      const leftString = calc.slice(0, startPos);
-      const lastNumberChunk = leftString.split(/[\+\-\*\/×÷\(\)]/).pop();
-      if (lastNumberChunk.includes(".")) return; // block duplicate point inside number
+      const lastNumberChunk = calc.split(/[\+\-\*\/×÷\(\)]/).pop();
+      if (lastNumberChunk.includes(".")) return;
     }
 
-    // 4. Operator swap validation at cursor location
-    let leftSide = calc.slice(0, startPos);
-    let rightSide = calc.slice(endPos);
-
-    if (isOperator(parsedBtn) && leftSide.length > 0) {
-      const lastChar = leftSide.slice(-1);
-      if (isOperator(lastChar)) {
-        // Swap back-to-back operators
-        leftSide = leftSide.slice(0, -1);
-        startPos -= 1;
+    setCalc((prev) => {
+      if (isOperator(parsedBtn) && prev.length > 0) {
+        const lastChar = prev.slice(-1);
+        if (isOperator(lastChar)) {
+          return prev.slice(0, -1) + parsedBtn;
+        }
       }
-    }
-
-    const finalCalc = leftSide + parsedBtn + rightSide;
-    setCalc(finalCalc);
-
-    // Reposition cursor instantly forward one character item
-    const nextCursorLocation = startPos + parsedBtn.length;
-    setTimeout(() => {
-      if (displayRef.current) {
-        displayRef.current.focus();
-        displayRef.current.setSelectionRange(nextCursorLocation, nextCursorLocation);
-      }
-    }, 0);
+      return prev + parsedBtn;
+    });
   }
 
   // ---------------- LAYOUT ARRAYS ----------------
@@ -257,18 +206,16 @@ function LengthConversion() {
               </div>
 
               {/* ================= CALCULATOR ================= */}
-             {/* ================= CALCULATOR ================= */}
               <div className="calculator-wrapper">
                 <div className={`calculator ${panel}`}>
-                  <input
-                    ref={displayRef}
-                    type="text"
+                  
+                  {/* Changed from <input> to a scrollable <div> label */}
+                  <div 
+                    ref={displayRef} 
                     className="calc-display"
-                    value={calc}
-                    placeholder="0"
-                    onChange={(e) => setCalc(e.target.value)} // Keep this so state and cursor tracking stay synced
-                    inputMode="none" // Tells mobile devices: "Focus the field and show the cursor, but keep the keyboard hidden"
-                  />
+                  >
+                    {calc || "0"}
+                  </div>
 
                   <div className="memory">M: {memory}</div>
 
@@ -497,13 +444,13 @@ function LengthConversion() {
         .length-panel .calculator.quarter .calc-display {
           height: 46px;
           font-size: 22px;
-          padding: 6px;
+          padding: 12px 6px;
         }
 
         .length-panel .calculator.full .calc-display {
           height: 75px;
           font-size: 38px;
-          padding: 12px;
+          padding: 16px 12px;
         }
 
         .length-panel .calc-display {
@@ -515,9 +462,17 @@ function LengthConversion() {
           transition: all 0.2s ease-in-out;
           border: none;
           outline: none;
+          
+          /* Updated: custom scroll setups for the standard div element */
+          overflow-x: auto;
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          -webkit-overflow-scrolling: touch; /* Butter-smooth scrolling on mobile browsers */
         }
 
-        .length-panel .calc-display:hover, .length-panel .calc-display:focus {
+        .length-panel .calc-display:hover {
           background: #c9d4b3;
           box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
         }
@@ -550,12 +505,14 @@ function LengthConversion() {
         .length-panel .calculator.quarter .calc-buttons button {
           height: 36px;
           font-size: 13px;
+          touch-action: manipulation;
         }
 
         .length-panel .calculator.full .calc-buttons button {
           height: 56px;
           font-size: 20px;
           border-radius: 8px;
+          touch-action: manipulation;
         }
 
         .length-panel .calc-buttons button {
