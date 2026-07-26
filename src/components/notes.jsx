@@ -33,8 +33,11 @@ function NotesPanel() {
     <>
       {/* OPEN BUTTON MOVED TO THE LEFT EDGE */}
       {panel === "hidden" && (
-        <button className="open-arrow" onClick={() => setPanel("partial")}>
-          ▶
+        <button className="open-arrow" onClick={() => setPanel("partial")} aria-label="Open notes">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9l7 7v9a2 2 0 0 1-2 2z" />
+            <path d="M14 3v7h7" />
+          </svg>
         </button>
       )}
 

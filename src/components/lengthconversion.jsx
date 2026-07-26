@@ -180,8 +180,26 @@ function LengthConversion() {
     <>
       {/* OPEN BUTTON */}
       {panel === "hidden" && (
-        <button className="calculator-open-arrow" onClick={() => setPanel("quarter")}>
-          ◀
+        <button
+          className="calculator-open-arrow"
+          onClick={() => setPanel("quarter")}
+          aria-label="Open calculator"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <rect x="7" y="5" width="10" height="4" rx="1" />
+            <path d="M7 11h2M11 11h2M15 11h2M7 15h2M11 15h2M15 15h2M7 19h2M11 19h2M15 19h2" />
+          </svg>
         </button>
       )}
 
