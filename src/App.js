@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import "./App.css";
 import Navbar from "./components/navbar";
 import LengthConversion from "./components/lengthconversion";
-import AreaConversion from "./components/survey-calculations/areaconversion";
 import UnevenShapes from "./components/survey-calculations/uneven-shapes";
 import Pythagoras from "./components/survey-calculations/pythogoras";
 import Nos from "./components/survey-calculations/nos";
 import OffsetIntersectionUI from "./components/survey-calculations/intersection";
 import NotesPanel from "./components/notes";
+import FLineReport from "./components/surveyor-statements/fline";
 
 function App() {
   const [page, setPage] = useState("unevenshapes");
@@ -20,10 +20,10 @@ function App() {
         return <Pythagoras />;
       case "intersection":
         return <OffsetIntersectionUI/>
-      case "areaconversion":
-        return <AreaConversion/>
       case "unevenshapes":
         return <UnevenShapes/>
+      case "fline":
+        return <FLineReport/>
       default:
         return <UnevenShapes/>;
     }

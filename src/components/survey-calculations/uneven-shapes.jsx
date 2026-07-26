@@ -517,13 +517,13 @@ function UnevenShapes() {
   // TRIANGLE INPUT POSITIONS & ANGLES
   // =========================================================
 
-  const triAB = getPosition(triPoints.A, triPoints.B, -15, -15);
-  const triBC = getPosition(triPoints.B, triPoints.C, 15, -15);
-  const triCA = getPosition(triPoints.C, triPoints.A, 0, 25);
+  const triAB = getPosition(triPoints.A, triPoints.B, -15, -25);
+  const triBC = getPosition(triPoints.B, triPoints.C, 25, -15);
+  const triCA = getPosition(triPoints.A, triPoints.C, 0, 20);
 
   const triAngleAB = getAngle(triPoints.A, triPoints.B);
   const triAngleBC = getAngle(triPoints.B, triPoints.C);
-  const triAngleCA = getAngle(triPoints.C, triPoints.A);
+  const triAngleCA = getAngle(triPoints.A, triPoints.C);
 
   // =========================================================
   // PENTAGON INPUT POSITIONS
@@ -647,7 +647,7 @@ function UnevenShapes() {
       <div style={styles.card}>
 
         <h2 style={styles.heading}>
-          Irregular Quadrilateral ABCD
+          Irregular Quadrilateral
         </h2>
 
         <p style={styles.description}>
@@ -831,7 +831,7 @@ function UnevenShapes() {
       <div style={styles.card}>
 
         <h2 style={styles.heading}>
-          Irregular Triangle ABC
+          Irregular Triangle
         </h2>
 
         <p style={styles.description}>
@@ -920,7 +920,7 @@ function UnevenShapes() {
           {/* CA INPUT */}
           <input
             type="number"
-            placeholder="CA"
+            placeholder="AC"
             value={triValues.CA}
             onChange={(e) =>
               handleTriChange("CA", e.target.value)
@@ -963,7 +963,7 @@ function UnevenShapes() {
       <div style={styles.card}>
 
         <h2 style={styles.heading}>
-          Irregular Pentagon ABCDE
+          Irregular Pentagon
         </h2>
 
         <p style={styles.description}>

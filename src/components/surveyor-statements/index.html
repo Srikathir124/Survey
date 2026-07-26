@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>துல்லிய புல உட்பிரிவு வரைபடம் (Advanced FMB Tool)</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .a4-page {
+            background: white;
+            width: 100%;
+            max-width: 600px;
+            min-height: 842px;
+            border: 2px solid #2b6cb0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-sizing: border-box;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .report-section {
+            box-sizing: border-box;
+            font-size: 14px;
+            line-height: 2.2; 
+            color: #000000;
+            padding-bottom: 20px;
+            text-align: justify;
+        }
+        
+        .report-section.has-canvas {
+            border-bottom: 2px dashed #2b6cb0;
+        }
+
+        .report-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            text-decoration: underline;
+            margin-bottom: 20px;
+            color: #000000;
+        }
+        
+        .editable-span {
+            border-bottom: 1px dotted #000000;
+            font-weight: bold;
+            color: #000000;
+            background: #f7fafc;
+            padding: 0px 4px;
+            font-size: 14px;
+            display: inline;
+            outline: none;
+        }
+        .editable-span:focus { background: #f0f0f0; border-bottom: 2px solid #000000; }
+        
+        .editable-select {
+            border: none;
+            border-bottom: 1px dotted #000000;
+            font-weight: bold;
+            color: #000000;
+            background: #f7fafc;
+            padding: 0px 2px;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-block;
+            white-space: nowrap;
+            width: auto;
+        }
+        .editable-select:focus { outline: none; background: #f0f0f0; }
+
+        .signature-container {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .sig-box {
+            text-align: center;
+            width: 32%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #000000;
+        }
+        .sig-display-pad {
+            border: 1px solid #cbd5e0;
+            background: #fafafa;
+            width: 100%;
+            height: 60px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .sig-display-pad span { font-size: 10px; color: #a0aec0; font-weight: bold; }
+        .sig-display-pad img { width: 100%; height: 100%; object-fit: contain; }
+        
+        .sig-label { font-size: 11px; font-weight: bold; line-height: 1.4; color: #000000; }
+        
+        .witness-section { margin-top: 20px; font-size: 13px; font-weight: bold; color: #000000; }
+        .witness-container { display: flex; justify-content: space-between; margin-top: 10px; }
+        .witness-box { width: 48%; display: flex; flex-direction: column; align-items: flex-start; }
+        .witness-pad {
+            border-bottom: 1px solid #000000;
+            width: 100%;
+            height: 45px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #fafafa;
+        }
+        .witness-pad span { font-size: 11px; color: #a0aec0; font-weight: normal; }
+        .witness-pad img { height: 100%; object-fit: contain; }
+
+        .sig-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 8px;
+            padding: 15px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .modal-title { font-weight: bold; color: #2b6cb0; margin-bottom: 10px; font-size: 14px; }
+        canvas#modalSigCanvas {
+            border: 2px solid #cbd5e0;
+            background: #ffffff;
+            cursor: crosshair;
+            border-radius: 6px;
+            touch-action: none;
+        }
+        .modal-btns { display: flex; width: 100%; gap: 10px; margin-top: 15px; }
+        .modal-btns button { flex: 1; padding: 12px; font-weight: bold; font-size: 14px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-save { background-color: #48bb78; color: white; }
+        .btn-clear { background-color: #f56565; color: white; }
+        .btn-close { background-color: #718096; color: white; }
+
+        .canvas-section { position: relative; box-sizing: border-box; padding-top: 15px; display: flex; flex-direction: column; align-items: center; }
+        .canvas-header-info { display: flex; justify-content: space-between; width: 100%; font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #000000; }
+        .canvas-container-box { position: relative; width: 100%; display: flex; justify-content: center; }
+        canvas#surveyCanvas { border: 1px solid #cbd5e0; cursor: crosshair; background: #fff; }
+        .north-arrow { position: absolute; top: 10px; right: 10px; text-align: center; font-size: 11px; font-weight: bold; color: #000000; }
+        .canvas-footer { margin-top: 10px; text-align: center; font-size: 12px; font-weight: bold; width: 100%; color: #000000; }
+        
+        .controls { width: 100%; max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; box-sizing: border-box; margin-bottom: 15px; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .form-group { flex: 1; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #4a5568; font-size: 13px; }
+        select, input, button { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        button { background-color: #4299e1; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        button:hover { background-color: #3182ce; }
+        .btn-danger { background-color: #f56565; }
+        .btn-success { background-color: #48bb78; }
+        
+        .color-selector { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; font-size: 13px; font-weight: bold; }
+        .dot-control-box { display: flex; align-items: center; background: #fffaf0; border: 1px dashed #ed8936; padding: 10px; border-radius: 4px; margin-bottom: 12px; font-size: 14px; font-weight: bold; color: #c05621; }
+
+        @media print {
+            .controls, .sig-modal, .sig-display-pad span, .witness-pad span { display: none !important; }
+            body { background: white; padding: 0; }
+            .a4-page { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0px; margin: 0px; }
+            .editable-span { border: none; background: transparent; padding: 0; }
+            .editable-select { border: none; background: transparent; appearance: none; -webkit-appearance: none; padding: 0; }
+            .sig-display-pad, .witness-pad { border: none; background: transparent; }
+            canvas#surveyCanvas { border: none !important; }
+            .canvas-section { display: none; }
+            .canvas-section.show-print { display: flex !important; }
+        }
+    </style>
+</head>
+<!-- 
+<body>
+
+    <div class="controls">
+        <div class="form-group" style="background-color: #ebf8ff; padding: 12px; border: 1px solid #bee3f8; border-radius: 6px; margin-bottom: 12px;">
+            <label style="color: #2b6cb0; font-size: 14px;"><strong>மனுதாரரின் நிலை (Applicant Status):</strong></label>
+            <select id="applicantStatus" onchange="handleStatusChange();" style="border: 2px solid #3182ce; font-weight: bold;">
+                <option value="satisfied" selected>1. திருப்தி அடைந்தார் (Satisfied - With Sketch)</option>
+                <option value="not_satisfied">2. திருப்தி அடையவில்லை (Not Satisfied - No Sketch)</option>
+            </select>
+        </div>
+
+        <div class="color-selector">
+            <span>பேனா மை வண்ணம் (Signature Color):</span>
+            <label><input type="radio" name="sigColor" value="blue" checked style="width:auto;"> நீலம் (Blue)</label>
+            <label><input type="radio" name="sigColor" value="black" style="width:auto;"> கருப்பு (Black)</label>
+        </div>
+
+        <button style="background-color: #ed8936; margin-top: 5px; padding: 12px;" onclick="printFMBFinalPDF()">அறிக்கையை PDF ஆக டவுன்லோடு செய்ய (Download PDF)</button>
+    </div>
+
+    <div class="a4-page" id="fmbReportPage">
+        <div class="report-section has-canvas" id="reportSection">
+            <div class="report-header">குறுவட்ட அளவரின் அறிக்கை / மனுதாரரின் வாக்குமூலம்</div>
+            
+            <div>
+                வட்டார/வட்டாட்சியர் அலுவலகம்: <span contenteditable="true" id="view_office" class="editable-span" oninput="syncToCanvas();">தஞ்சாவூர்</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 5px;">
+                <div>புல எல்லை மனு எண்: <span contenteditable="true" id="view_req_no" class="editable-span">002743/2026</span></div>
+                <div>நாள்: <span contenteditable="true" id="view_date" class="editable-span">19/06/2026</span></div>
+            </div>
+            
+            <div style="margin-top: 8px; text-align: justify;">
+                <span contenteditable="true" id="view_district" class="editable-span" oninput="syncToCanvas();">தஞ்சாவூர்</span> மாவட்டம்,
+                <span contenteditable="true" id="view_taluk" class="editable-span" oninput="syncToCanvas();">தஞ்சாவூர்</span> வட்டம்,
+                <span contenteditable="true" id="view_village" class="editable-span" oninput="syncToCanvas();">வல்லம்</span> கிராமம், புல எண்:
+                <span contenteditable="true" id="view_survey" class="editable-span" oninput="syncToCanvas();">125/2A</span>-ன் புல எல்லைகளை அளக்கக் கோரி நான் (திரு / திருமதி)
+                <span contenteditable="true" id="view_name" class="editable-span">M. அன்பரசன்</span> மனு சமர்ப்பித்ததை முன்னிட்டு இன்று (
+                <span contenteditable="true" id="view_survey_date" class="editable-span">19/06/2026</span>) அன்றைய தினம் 
+                
+                <select id="view_designation" class="editable-select" onchange="syncDesignation(); resizeSelect(this);">
+                    <option value="குறுவட்ட நிலஅளவர்" selected>குறுவட்ட நிலஅளவர்</option>
+                    <option value="நிலஅளவர்">நிலஅளவர்</option>
+                    <option value="சார் ஆய்வாளர்">சார் ஆய்வாளர்</option>
+                </select>
+                
+                <span id="variableStatement">முற்பகலில்/பிற்பகலில் புலத்தின் எல்லைகளை அளந்து காண்பித்தார். அப்போது நான் உடன் இருந்து எனது புல எல்லைகளை தெரிந்து கொண்டேன்.</span>
+            </div>
+            
+            <div class="signature-container">
+                <div class="sig-box">
+                    <div id="pad_vaor" class="sig-display-pad" onclick="openSignatureModal('vaor', 'கி.நி. அலுவலர் (கிராம நிர்வாக அலுவலர்)')">
+                        <span>கையெழுத்திட கிளிக் செய்க</span>
+                    </div>
+                    <div class="sig-label">கி.நி. அலுவலர்<br>(கிராம நிர்வாக அலுவலர்)</div>
+                </div>
+                <div class="sig-box">
+                    <div id="pad_surveyor" class="sig-display-pad" onclick="openSignatureModal('surveyor', 'அளவர் கையொப்பம்')">
+                        <span>கையெழுத்திட கிளிக் செய்க</span>
+                    </div>
+                    <div class="sig-label">என் முன்பாக<br>(<span id="sig_label_designation">குறுவட்ட நிலஅளவர்</span>)</div>
+                </div>
+                <div class="sig-box">
+                    <div id="pad_applicant" class="sig-display-pad" onclick="openSignatureModal('applicant', 'மனுதாரர் கையொப்பம்')">
+                        <span>கையெழுத்திட கிளிக் செய்க</span>
+                    </div>
+                    <div class="sig-label"><br>மனுதாரர் கையொப்பம்</div>
+                </div>
+            </div>
+            
+            <div class="witness-section">
+                சாட்சிகளின் கையொப்பம்:<br>
+                <div class="witness-container">
+                    <div class="witness-box">
+                        <div id="pad_witness1" class="witness-pad" onclick="openSignatureModal('witness1', 'சாட்சி 1 கையொப்பம்')">
+                            <span>1. கையெழுத்திட கிளிக் செய்க</span>
+                        </div>
+                    </div>
+                    <div class="witness-box">
+                        <div id="pad_witness2" class="witness-pad" onclick="openSignatureModal('witness2', 'சாட்சி 2 கையொப்பம்')">
+                            <span>2. கையெழுத்திட கிளிக் செய்க</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-section show-print" id="canvasSection">
+            <div class="canvas-header-info">
+                <div>மாவட்டம்: <span id="c_district" style="border-bottom: 1px solid #000; padding: 0 5px;">தஞ்சாவூர்</span></div>
+                <div>வட்டம்: <span id="c_taluk" style="border-bottom: 1px solid #000; padding: 0 5px;">தஞ்சாவூர்</span></div>
+            </div>
+            <div class="canvas-header-info">
+                <div>கிராமம்: <span id="c_village" style="border-bottom: 1px solid #000; padding: 0 5px;">வல்லம்</span></div>
+                <div>புல எண்/உட்பிரிவு எண்: <span id="c_survey" style="border-bottom: 1px solid #000; padding: 0 5px;">125/2A</span></div>
+            </div>
+            
+            <div class="canvas-container-box">
+                <canvas id="surveyCanvas" width="560" height="340"></canvas>
+                <div class="north-arrow">
+                    <svg width="25" height="35" viewBox="0 0 30 40">
+                        <line x1="15" y1="35" x2="15" y2="5" stroke="black" stroke-width="2"/>
+                        <polyline points="10,12 15,5 20,12" fill="none" stroke="black" stroke-width="2"/>
+                    </svg>
+                    <br>N (வ)
+                </div>
+            </div>
+            <div class="canvas-footer">அளவுக்கு வரையப்பட்டதல்ல,</div>
+        </div>
+    </div>
+
+    <div id="signatureModal" class="sig-modal">
+        <div class="modal-content">
+            <div id="modalTitle" class="modal-title">கையொப்பம் இடவும்</div>
+            <canvas id="modalSigCanvas" width="440" height="250"></canvas>
+            <div class="modal-btns">
+                <button class="btn-clear" onclick="clearModalCanvas()">அழி (Clear)</button>
+                <button class="btn-close" onclick="closeSignatureModal()">மூடு (Close)</button>
+                <button class="btn-save" onclick="saveSignature()">சரி (Save)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls" id="onlyDrawingTools">
+        <h3>வரைபடக் கட்டுப்பாடுகள் (FMB Tools)</h3>
+        
+        <div class="dot-control-box">
+            <input type="checkbox" id="toggleDotsVisibility" checked onchange="toggleDotsManually(this);" style="width:20px; height:20px; margin-right:10px; cursor:pointer;">
+            <label for="toggleDotsVisibility" style="cursor:pointer; color:#c05621;">வரைபடத்தில் புள்ளிகளைக் காட்டு (Show Joint Dots)</label>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>FMB-ன் அதிகபட்ச நீளம் (மீ):</label>
+                <input type="number" id="maxLength" value="150" onchange="initScale()">
+            </div>
+            <div class="form-group">
+                <label>செயல்பாடு (Action Mode):</label>
+                <select id="drawingMode" onchange="toggleMode()">
+                    <option value="outer">1. Outer boundary by circle method</option>
+                    <option value="inner_point">2. Subdivision points by circle method</option>
+                    <option value="inner_line">3. Subdivision line</option>
+                    <option value="frill_draw">4. Adjacent boundary line</option>
+                    <option value="adj_text">5. Adjacent survey number</option>
+                    <option value="edit_meas">6. Modify measurement text</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="btn-success" id="closeOuterBtn" onclick="closeOuterBoundary()">வெளிப்புற எல்லையை முடி (Close Outer)</button>
+        
+        <div class="form-row" style="margin-top: 10px;">
+            <button class="btn-danger" onclick="undoLastAction()">ஒரு படி பின்னே (Undo)</button>
+            <button class="btn-danger" style="background-color:#718096;" onclick="resetCanvas()">அனைத்தையும் அழி (Reset)</button>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('surveyCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const modal = document.getElementById('signatureModal');
+    const mCanvas = document.getElementById('modalSigCanvas');
+    const mCtx = mCanvas.getContext('2d');
+    let currentSigTarget = '';
+    let isMDrawing = false;
+
+    let scale = 1;
+    let offsetX = 0;
+    let offsetY = 0;
+    const BORDER_BUFFER = 20;
+
+    let outerPoints = [];    
+    let innerPoints = [];    
+    let innerLines = [];     
+    let textLabels = [];     
+    let frillExtensions = [];
+    let textPositions = [];
+    
+    let isOuterClosed = false;
+    let activeCircle = null;
+    let selectedPointForLine = null;
+    let frillStartPoint = null;
+    let isDrawingModeForDots = true;
+
+    function handleStatusChange() {
+        const status = document.getElementById('applicantStatus').value;
+        const variableStatement = document.getElementById('variableStatement');
+        const canvasSection = document.getElementById('canvasSection');
+        const onlyDrawingTools = document.getElementById('onlyDrawingTools');
+        const reportSection = document.getElementById('reportSection');
+
+        if (status === 'satisfied') {
+            variableStatement.innerHTML = "முற்பகலில்/பிற்பகலில் புலத்தின் எல்லைகளை அளந்து காண்பித்தார். அப்போது நான் உடன் இருந்து எனது புல எல்லைகளை தெரிந்து கொண்டேன்.";
+            canvasSection.style.display = 'flex';
+            canvasSection.classList.add('show-print');
+            onlyDrawingTools.style.display = 'block';
+            reportSection.classList.add('has-canvas');
+        } else {
+            variableStatement.innerHTML = "முற்பகலில்/பிற்பகலில் புலத்தின் எல்லைகளை அளந்து காண்பித்தார். அளவையில் எனக்கு திருப்தி இல்லை என்பதை தெரிவித்துக் கொள்கிறேன்.";
+            canvasSection.style.display = 'none';
+            canvasSection.classList.remove('show-print');
+            onlyDrawingTools.style.display = 'none';
+            reportSection.classList.remove('has-canvas');
+        }
+    }
+
+    function resizeSelect(el) {
+        let tempSpan = document.createElement("span");
+        tempSpan.style.visibility = "hidden";
+        tempSpan.style.position = "absolute";
+        tempSpan.style.fontSize = "14px";
+        tempSpan.style.fontWeight = "bold";
+        tempSpan.style.fontFamily = getComputedStyle(el).fontFamily;
+        tempSpan.innerText = el.options[el.selectedIndex].text;
+        document.body.appendChild(tempSpan);
+        el.style.width = (tempSpan.getBoundingClientRect().width + 12) + "px";
+        document.body.removeChild(tempSpan);
+    }
+
+    window.onload = function() {
+        syncToCanvas();
+        syncDesignation();
+        resetCanvas();
+        setupModalSignatureLogic();
+        resizeSelect(document.getElementById('view_designation'));
+        handleStatusChange();
+    };
+
+    function syncToCanvas() {
+        document.getElementById('c_district').innerText = document.getElementById('view_district').innerText;
+        document.getElementById('c_taluk').innerText = document.getElementById('view_taluk').innerText;
+        document.getElementById('c_village').innerText = document.getElementById('view_village').innerText;
+        document.getElementById('c_survey').innerText = document.getElementById('view_survey').innerText;
+    }
+
+    function syncDesignation() {
+        let currentDesignation = document.getElementById('view_designation').value;
+        document.getElementById('sig_label_designation').innerText = currentDesignation;
+    }
+
+    function openSignatureModal(target, titleText) {
+        currentSigTarget = target;
+        document.getElementById('modalTitle').innerText = titleText;
+        clearModalCanvas();
+        modal.style.display = 'flex';
+    }
+
+    function closeSignatureModal() { modal.style.display = 'none'; }
+    function clearModalCanvas() { mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height); }
+
+    function saveSignature() {
+        const dataURL = mCanvas.toDataURL();
+        const displayPad = document.getElementById('pad_' + currentSigTarget);
+        if (currentSigTarget === 'witness1' || currentSigTarget === 'witness2') {
+            displayPad.innerHTML = `<img src="${dataURL}" alt="Witness Signature">`;
+        } else {
+            displayPad.innerHTML = `<img src="${dataURL}" alt="Signature">`;
+        }
+        closeSignatureModal();
+    }
+
+    function setupModalSignatureLogic() {
+        function getPenColor() { return document.querySelector('input[name="sigColor"]:checked').value === 'blue' ? '#0000ff' : '#000000'; }
+        mCanvas.addEventListener('mousedown', (e) => { isMDrawing = true; mCtx.beginPath(); mCtx.moveTo(e.offsetX, e.offsetY); });
+        mCanvas.addEventListener('mousemove', (e) => { if (!isMDrawing) return; mCtx.lineTo(e.offsetX, e.offsetY); mCtx.strokeStyle = getPenColor(); mCtx.lineWidth = 3; mCtx.stroke(); });
+        window.addEventListener('mouseup', () => isMDrawing = false);
+
+        mCanvas.addEventListener('touchstart', (e) => { isMDrawing = true; const rect = mCanvas.getBoundingClientRect(); const touch = e.touches[0]; mCtx.beginPath(); mCtx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top); e.preventDefault(); });
+        mCanvas.addEventListener('touchmove', (e) => { if (!isMDrawing) return; const rect = mCanvas.getBoundingClientRect(); const touch = e.touches[0]; mCtx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top); mCtx.strokeStyle = getPenColor(); mCtx.lineWidth = 3; mCtx.stroke(); e.preventDefault(); });
+        window.addEventListener('touchend', () => isMDrawing = false);
+    }
+
+    function initScale() {
+        let maxMeters = parseFloat(document.getElementById('maxLength').value) || 150;
+        
+        if (!isOuterClosed) {
+            let scaleX = (canvas.width - 60) / maxMeters;
+            let scaleY = (canvas.height - 60) / maxMeters;
+            scale = Math.min(scaleX, scaleY);
+            
+            offsetX = canvas.width / 2; 
+            offsetY = canvas.height / 2;
+            
+            if(outerPoints.length === 1) {
+                outerPoints[0].x_raw = 0;
+                outerPoints[0].y_raw = 0;
+            }
+            redrawAll();
+            return;
+        }
+
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+
+        outerPoints.forEach(p => {
+            if (p.x_raw < minX) minX = p.x_raw; if (p.x_raw > maxX) maxX = p.x_raw;
+            if (p.y_raw < minY) minY = p.y_raw; if (p.y_raw > maxY) maxY = p.y_raw;
+        });
+
+        let fieldWidthMeters = maxX - minX;
+        let fieldHeightMeters = maxY - minY;
+
+        if(fieldWidthMeters === 0) fieldWidthMeters = 10;
+        if(fieldHeightMeters === 0) fieldHeightMeters = 10;
+
+        let totalRequiredWidth = fieldWidthMeters + (BORDER_BUFFER * 2);
+        let totalRequiredHeight = fieldHeightMeters + (BORDER_BUFFER * 2);
+
+        let scaleX = canvas.width / totalRequiredWidth;
+        let scaleY = canvas.height / totalRequiredHeight;
+        scale = Math.min(scaleX, scaleY);
+
+        offsetX = (canvas.width - (fieldWidthMeters * scale)) / 2 - (minX * scale);
+        offsetY = (canvas.height - (fieldHeightMeters * scale)) / 2 - (minY * scale);
+
+        redrawAll();
+    }
+
+    function toggleMode() {
+        let mode = document.getElementById('drawingMode').value;
+        const closeOuterBtn = document.getElementById('closeOuterBtn');
+        if((mode === 'inner_point' || mode === 'inner_line' || mode === 'frill_draw' || mode === 'adj_text' || mode === 'edit_meas') && !isOuterClosed) {
+            alert("முதலில் வெளிப்புற எல்லையை முடித்துவிட்டு உட்பிரிவுக்கு வரவும்!");
+            document.getElementById('drawingMode').value = 'outer';
+            return;
+        }
+        if(mode === 'outer') closeOuterBtn.style.display = 'block';
+        else closeOuterBtn.style.display = 'none';
+        activeCircle = null; selectedPointForLine = null; frillStartPoint = null; redrawAll();
+    }
+
+    function toggleDotsManually(checkboxEl) {
+        isDrawingModeForDots = checkboxEl.checked;
+        redrawAll();
+    }
+
+    canvas.addEventListener('mousedown', function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
+        
+        let mode = document.getElementById('drawingMode').value;
+        
+        if (mode === 'edit_meas') {
+            let clickedText = textPositions.find(pos => Math.sqrt((pos.x - clickX)**2 + (pos.y - clickY)**2) < 25);
+            if (clickedText) {
+                setTimeout(() => {
+                    let newVal = prompt("அளவை மாற்றியமைக்கவும்:", clickedText.ref.customDist || clickedText.currentText);
+                    if (newVal !== null) {
+                        clickedText.ref.customDist = newVal; 
+                        redrawAll();
+                    }
+                }, 50);
+            } else { alert("மாற்ற வேண்டிய அளவின் (Measurement Text) மீது சரியாகத் தொடவும்!"); }
+            return;
+        }
+
+        if (mode === 'frill_draw') {
+            if (!frillStartPoint) {
+                let clickedPt = findClosestPoint(clickX, clickY); 
+                let edgePt = findClosestPointOnCanvasLines(clickX, clickY, 35);
+                
+                if (!clickedPt && edgePt) {
+                    let newPointLabel = "IP" + (innerPoints.length + 1);
+                    clickedPt = { 
+                        x_raw: edgePt.x_raw, 
+                        y_raw: edgePt.y_raw, 
+                        label: newPointLabel,
+                        dist: 0, 
+                        fromPoint: null,
+                        isOnEdge: true, 
+                        edgeIdx: edgePt.edgeIdx, 
+                        ratio: edgePt.ratio,
+                        isOnInnerLine: false, 
+                        innerLineIdx: -1
+                    };
+                    innerPoints.push(clickedPt);
+                }
+                
+                if (clickedPt) { 
+                    frillStartPoint = clickedPt; 
+                    redrawAll(); 
+                } else { 
+                    alert("எக்ஸ்டென்ஷன் கோடு துவங்க அவுட்டர் கறுப்புக் கோட்டின் மீது கிளிக் செய்யவும்!"); 
+                }
+            } else {
+                let mouseX = (clickX - offsetX) / scale;
+                let mouseY = (clickY - offsetY) / scale;
+                frillExtensions.push({
+                    x1_raw: frillStartPoint.x_raw,
+                    y1_raw: frillStartPoint.y_raw,
+                    x2_raw: mouseX,
+                    y2_raw: mouseY
+                });
+                frillStartPoint = null; redrawAll();
+            }
+            return;
+        }
+
+        let mouseX = (clickX - offsetX) / scale;
+        let mouseY = (clickY - offsetY) / scale;
+
+        if (mode === 'outer') {
+            if (isOuterClosed) return;
+            if (outerPoints.length === 0) {
+                outerPoints.push({ x_raw: 0, y_raw: 0, dist: 0 });
+                initScale();
+                askForRadius(0, 0, 'outer');
+            } else if (activeCircle) {
+                let snapped = getSnappedCoords(mouseX, mouseY, activeCircle);
+                outerPoints.push({ x_raw: snapped.x, y_raw: snapped.y, dist: activeCircle.distanceMeter });
+                activeCircle = null; 
+                initScale(); 
+                askForRadius(snapped.x, snapped.y, 'outer');
+            }
+        } 
+        else if (mode === 'inner_point') {
+            if (activeCircle) {
+                let snapped = getSnappedCoords(mouseX, mouseY, activeCircle);
+                let newPointLabel = "IP" + (innerPoints.length + 1);
+                
+                let edgePt = findClosestPointOnCanvasLines(snapped.x * scale + offsetX, snapped.y * scale + offsetY, 30);
+                let innerLinePt = findClosestPointOnInnerCanvasLines(snapped.x * scale + offsetX, snapped.y * scale + offsetY, 30);
+                
+                let onEdge = false; let edgeIdx = -1; let ratio = 0;
+                let onInnerLine = false; let innerLineIdx = -1;
+
+                if (edgePt) {
+                    snapped.x = edgePt.x_raw; 
+                    snapped.y = edgePt.y_raw;
+                    onEdge = true;
+                    edgeIdx = edgePt.edgeIdx;
+                    ratio = edgePt.ratio;
+                } else if (innerLinePt) { 
+                    snapped.x = innerLinePt.x_raw;
+                    snapped.y = innerLinePt.y_raw;
+                    onInnerLine = true;
+                    innerLineIdx = innerLinePt.lineIdx;
+                    ratio = innerLinePt.ratio;
+                }
+
+                innerPoints.push({ 
+                    x_raw: snapped.x, y_raw: snapped.y, label: newPointLabel, 
+                    dist: activeCircle.distanceMeter, fromPoint: activeCircle.fromPoint,
+                    isOnEdge: onEdge, edgeIdx: edgeIdx, ratio: ratio,
+                    isOnInnerLine: onInnerLine, innerLineIdx: innerLineIdx
+                });
+                activeCircle = null; redrawAll();
+            } 
+            else {
+                let clickedPt = findClosestPoint(clickX, clickY);
+                if (clickedPt) { askForRadius(clickedPt.x_raw, clickedPt.y_raw, 'inner_point', clickedPt); }
+                else {
+                    let edgePt = findClosestPointOnCanvasLines(clickX, clickY, 35);
+                    let innerLinePt = findClosestPointOnInnerCanvasLines(clickX, clickY, 35);
+                    if (edgePt) { askForRadius(edgePt.x_raw, edgePt.y_raw, 'inner_point', edgePt); }
+                    else if (innerLinePt) { askForRadius(innerLinePt.x_raw, innerLinePt.y_raw, 'inner_point', innerLinePt); }
+                }
+            }
+        }
+        else if (mode === 'inner_line') {
+            let clickedPt = findClosestPoint(clickX, clickY);
+            if (!clickedPt) {
+                let edgePt = findClosestPointOnCanvasLines(clickX, clickY, 35);
+                let innerLinePt = findClosestPointOnInnerCanvasLines(clickX, clickY, 35);
+                if (edgePt) clickedPt = { x_raw: edgePt.x_raw, y_raw: edgePt.y_raw };
+                else if (innerLinePt) clickedPt = { x_raw: innerLinePt.x_raw, y_raw: innerLinePt.y_raw };
+            }
+            if (!clickedPt) return;
+            
+            if (!selectedPointForLine) { selectedPointForLine = clickedPt; redrawAll(); }
+            else {
+                if (selectedPointForLine.x_raw !== clickedPt.x_raw || selectedPointForLine.y_raw !== clickedPt.y_raw) {
+                    let dPx = Math.sqrt((selectedPointForLine.x_raw - clickedPt.x_raw)**2 + (selectedPointForLine.y_raw - clickedPt.y_raw)**2);
+                    innerLines.push({ 
+                        p1: selectedPointForLine, p2: clickedPt,  
+                        dist: parseFloat(dPx.toFixed(1)), 
+                        isFrillLine: false 
+                    });
+                }
+                selectedPointForLine = null; redrawAll();
+            }
+        }
+        else if (mode === 'adj_text') {
+            setTimeout(() => {
+                let txt = prompt("பக்கத்து புல எண்ணை டைப் செய்யவும் (எ.கா: 125/2B):");
+                if (txt) { textLabels.push({ x_raw: mouseX, y_raw: mouseY, text: txt }); redrawAll(); }
+            }, 50);
+        }
+    });
+
+    function getSnappedCoords(mx, my, circle) { 
+        let angleRad = Math.atan2(my - circle.y_raw, mx - circle.x_raw); 
+        return { 
+            x: circle.x_raw + circle.radiusMeters * Math.cos(angleRad), 
+            y: circle.y_raw + circle.radiusMeters * Math.sin(angleRad) 
+        }; 
+    }
+    
+    function findClosestPoint(cx, cy) { 
+        let allPoints = [...outerPoints, ...innerPoints]; 
+        for (let p of allPoints) { 
+            let canvasX = p.x_raw * scale + offsetX;
+            let canvasY = p.y_raw * scale + offsetY;
+            if (Math.sqrt((cx - canvasX)**2 + (cy - canvasY)**2) < 20) return p; 
+        } 
+        return null; 
+    }
+
+    function findClosestPointOnCanvasLines(cx, cy, maxPixelTolerance) {
+        let minDist = Infinity; let closestPt = null;
+        if (outerPoints.length < 2) return null;
+
+        for (let i = 0; i < outerPoints.length; i++) {
+            let p1 = outerPoints[i]; let p2 = outerPoints[(i + 1) % outerPoints.length];
+            if (!isOuterClosed && i === outerPoints.length - 1) break;
+
+            let x1 = p1.x_raw * scale + offsetX; let y1 = p1.y_raw * scale + offsetY;
+            let x2 = p2.x_raw * scale + offsetX; let y2 = p2.y_raw * scale + offsetY;
+
+            let A = cx - x1; let B = cy - y1; let C = x2 - x1; let D = y2 - y1;
+            let dot = A * C + B * D; let lenSq = C * C + D * D;
+            let param = lenSq !== 0 ? dot / lenSq : -1;
+            let xx, yy;
+
+            if (param < 0) { xx = x1; yy = y1; } 
+            else if (param > 1) { xx = x2; yy = y2; }  
+            else { xx = x1 + param * C; yy = y1 + param * D; }
+
+            let pixelDist = Math.sqrt((cx - xx)**2 + (cy - yy)**2);
+            if (pixelDist < minDist && pixelDist < maxPixelTolerance) {
+                minDist = pixelDist;
+                let segLen = Math.sqrt(C*C + D*D);
+                let curLen = Math.sqrt((xx - x1)**2 + (yy - y1)**2);
+                closestPt = {
+                    x_raw: (xx - offsetX) / scale,
+                    y_raw: (yy - offsetY) / scale,
+                    edgeIdx: i,
+                    ratio: segLen > 0 ? curLen / segLen : 0
+                };
+            }
+        }
+        return closestPt;
+    }
+
+    function findClosestPointOnInnerCanvasLines(cx, cy, maxPixelTolerance) {
+        let minDist = Infinity; let closestPt = null;
+        if (innerLines.length === 0) return null;
+
+        for (let i = 0; i < innerLines.length; i++) {
+            let p1 = innerLines[i].p1; let p2 = innerLines[i].p2;
+            let x1 = p1.x_raw * scale + offsetX; let y1 = p1.y_raw * scale + offsetY;
+            let x2 = p2.x_raw * scale + offsetX; let y2 = p2.y_raw * scale + offsetY;
+
+            let A = cx - x1; let B = cy - y1; let C = x2 - x1; let D = y2 - y1;
+            let dot = A * C + B * D; let lenSq = C * C + D * D;
+            let param = lenSq !== 0 ? dot / lenSq : -1;
+            let xx, yy;
+
+            if (param < 0) { xx = x1; yy = y1; } 
+            else if (param > 1) { xx = x2; yy = y2; } 
+            else { xx = x1 + param * C; yy = y1 + param * D; }
+
+            let pixelDist = Math.sqrt((cx - xx)**2 + (cy - yy)**2);
+            if (pixelDist < minDist && pixelDist < maxPixelTolerance) {
+                minDist = pixelDist;
+                let segLen = Math.sqrt(C*C + D*D);
+                let curLen = Math.sqrt((xx - x1)**2 + (yy - y1)**2);
+                closestPt = {
+                    x_raw: (xx - offsetX) / scale,
+                    y_raw: (yy - offsetY) / scale,
+                    lineIdx: i,
+                    ratio: segLen > 0 ? curLen / segLen : 0
+                };
+            }
+        }
+        return closestPt;
+    }
+
+    function askForRadius(centerX, centerY, mode, sourcePoint = null) {
+        setTimeout(() => {
+            let userInput = prompt("புள்ளிக்கான தூரம் மீட்டரில் (0.0 வடிவம்):");
+            let distance = parseFloat(userInput);
+            if (userInput === null) return;
+            if (isNaN(distance) || distance <= 0) { alert("சரியான தூரத்தை உள்ளிடவும்!"); askForRadius(centerX, centerY, mode, sourcePoint); return; }
+            
+            activeCircle = { 
+                x_raw: centerX, 
+                y_raw: centerY, 
+                radiusMeters: distance, 
+                distanceMeter: parseFloat(distance.toFixed(1)), 
+                fromPoint: sourcePoint 
+            };
+            redrawAll();
+        }, 50);
+    }
+
+    function redrawAll() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        textPositions = [];  
+        
+        if (outerPoints.length > 0) {
+            let sumX = 0, sumY = 0;
+            outerPoints.forEach(p => { sumX += p.x_raw; sumY += p.y_raw; });
+            let polyCenterX = (sumX / outerPoints.length) * scale + offsetX;
+            let polyCenterY = (sumY / outerPoints.length) * scale + offsetY;
+
+            for(let i=0; i<outerPoints.length; i++) {
+                let p1 = outerPoints[i]; let p2 = outerPoints[(i+1)%outerPoints.length];
+                if(!isOuterClosed && i === outerPoints.length - 1) { break; }
+
+                let edgesPoints = innerPoints.filter(ip => ip.isOnEdge && ip.edgeIdx === i);
+                if (!isDrawingModeForDots) {
+                    edgesPoints = edgesPoints.filter(ep => {
+                        let attachedToLine = innerLines.some(line => 
+                            (Math.sqrt((line.p1.x_raw - ep.x_raw)**2 + (line.p1.y_raw - ep.y_raw)**2) < 0.05) ||
+                            (Math.sqrt((line.p2.x_raw - ep.x_raw)**2 + (line.p2.y_raw - ep.y_raw)**2) < 0.05)
+                        );
+                        let attachedToFrill = frillExtensions.some(ext =>
+                            (Math.sqrt((ext.x1_raw - ep.x_raw)**2 + (ext.y1_raw - ep.y_raw)**2) < 0.05)
+                        );
+                        return attachedToLine || attachedToFrill;
+                    });
+                }
+                edgesPoints.sort((a,b) => a.ratio - b.ratio);
+
+                let x1_c = p1.x_raw * scale + offsetX; let y1_c = p1.y_raw * scale + offsetY;
+                let x2_c = p2.x_raw * scale + offsetX; let y2_c = p2.y_raw * scale + offsetY;
+
+                ctx.beginPath(); ctx.moveTo(x1_c, y1_c); ctx.lineTo(x2_c, y2_c);
+                ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.5; ctx.stroke();
+
+                let fullDistText = p2.customDist || p2.dist.toFixed(1); 
+                if(i === 0 && isOuterClosed && !p2.customDist) {
+                    let dPx = Math.sqrt((p1.x_raw - p2.x_raw)**2 + (p1.y_raw - p2.y_raw)**2);
+                    fullDistText = parseFloat(dPx.toFixed(1)).toFixed(1);
+                }
+                
+                let midX = (x1_c + x2_c) / 2; let midY = (y1_c + y2_c) / 2;
+                
+                if (edgesPoints.length === 0) {
+                    textPositions.push({ x: midX, y: midY, currentText: fullDistText, ref: p2 });
+                    drawTextOffsetFixed(fullDistText, x1_c, y1_c, x2_c, y2_c, polyCenterX, polyCenterY, true, "#000000");
+                }
+
+                if(edgesPoints.length > 0) {
+                    let currentPt = p1;
+                    for(let j=0; j<=edgesPoints.length; j++) {
+                        let nextPt = (j === edgesPoints.length) ? p2 : edgesPoints[j];
+                        
+                        let partDistText = nextPt.customDistPart;
+                        if (!partDistText) {
+                            let partPx = Math.sqrt((nextPt.x_raw - currentPt.x_raw)**2 + (currentPt.y_raw - currentPt.y_raw)**2);
+                            partDistText = parseFloat(partPx.toFixed(1)).toFixed(1);
+                        }
+                        
+                        let cx1 = currentPt.x_raw * scale + offsetX; let cy1 = currentPt.y_raw * scale + offsetY;
+                        let cx2 = nextPt.x_raw * scale + offsetX; let cy2 = nextPt.y_raw * scale + offsetY;
+                        
+                        let midX_I = (cx1 + cx2) / 2; let midY_I = (cy1 + cy2) / 2;
+                        textPositions.push({ x: midX_I, y: midY_I, currentText: partDistText, ref: { get customDist() { return nextPt.customDistPart; }, set customDist(v) { nextPt.customDistPart = v; } } });
+                        
+                        drawTextOffsetFixed(partDistText, cx1, cy1, cx2, cy2, polyCenterX, polyCenterY, true, "#000000");
+                        currentPt = nextPt;
+                    }
+                }
+            }
+
+            if(!isOuterClosed && outerPoints.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(outerPoints[0].x_raw * scale + offsetX, outerPoints[0].y_raw * scale + offsetY);
+                for(let k=1; k<outerPoints.length; k++) { ctx.lineTo(outerPoints[k].x_raw * scale + offsetX, outerPoints[k].y_raw * scale + offsetY); }
+                ctx.strokeStyle = "#000000"; ctx.lineWidth = 2.5; ctx.stroke();
+                
+                for(let k=1; k<outerPoints.length; k++) {
+                    let prev = outerPoints[k-1]; let curr = outerPoints[k];
+                    let openDistText = curr.customDist || curr.dist.toFixed(1);
+                    
+                    let cx1 = prev.x_raw * scale + offsetX; let cy1 = prev.y_raw * scale + offsetY;
+                    let cx2 = curr.x_raw * scale + offsetX; let cy2 = curr.y_raw * scale + offsetY;
+                    
+                    let midX_Op = (cx1 + cx2) / 2; let midY_Op = (cy1 + cy2) / 2;
+                    textPositions.push({ x: midX_Op, y: midY_Op, currentText: openDistText, ref: curr });
+                    
+                    drawTextOffsetFixed(openDistText, cx1, cy1, cx2, cy2, polyCenterX, polyCenterY, true, "#000000");
+                }
+            }
+
+            if (isDrawingModeForDots) {
+                outerPoints.forEach((p) => { ctx.fillStyle = "#2b6cb0"; ctx.beginPath(); ctx.arc(p.x_raw * scale + offsetX, p.y_raw * scale + offsetY, 5, 0, 2 * Math.PI); ctx.fill(); });
+            }
+        }
+        
+        innerLines.forEach((line, idx) => {
+            let lx1 = line.p1.x_raw * scale + offsetX; let ly1 = line.p1.y_raw * scale + offsetY;
+            let lx2 = line.p2.x_raw * scale + offsetX; let ly2 = line.p2.y_raw * scale + offsetY;
+
+            let linePoints = innerPoints.filter(ip => ip.isOnInnerLine && ip.innerLineIdx === idx);
+            if (!isDrawingModeForDots) {
+                linePoints = linePoints.filter(lp => {
+                    return innerLines.some((otherLine, oIdx) => 
+                        idx !== oIdx && (
+                            Math.sqrt((otherLine.p1.x_raw - lp.x_raw)**2 + (otherLine.p1.y_raw - lp.y_raw)**2) < 0.05 ||
+                            Math.sqrt((otherLine.p2.x_raw - lp.x_raw)**2 + (otherLine.p2.y_raw - lp.y_raw)**2) < 0.05
+                        )
+                    );
+                });
+            }
+            linePoints.sort((a,b) => a.ratio - b.ratio);
+
+            ctx.beginPath(); ctx.moveTo(lx1, ly1); ctx.lineTo(lx2, ly2);
+            ctx.strokeStyle = "#e53e3e"; ctx.lineWidth = 2.0; ctx.stroke();
+            
+            let innerLineText = line.customDist || parseFloat(line.dist).toFixed(1);
+            let midX_IL = (lx1 + lx2) / 2; let midY_IL = (ly1 + ly2) / 2;
+            textPositions.push({ x: midX_IL, y: midY_IL, currentText: innerLineText, ref: line });
+            
+            if(linePoints.length === 0) {
+                drawTextAlongLine(innerLineText, lx1, ly1, lx2, ly2, "#000000");
+            } else {
+                let currentPt = line.p1;
+                for(let j=0; j<=linePoints.length; j++) {
+                    let nextPt = (j === linePoints.length) ? line.p2 : linePoints[j];
+                    
+                    let partDistText = nextPt.customSubLineDist;
+                    if (!partDistText) {
+                        let partPx = Math.sqrt((nextPt.x_raw - currentPt.x_raw)**2 + (currentPt.y_raw - currentPt.y_raw)**2);
+                        partDistText = parseFloat(partPx.toFixed(1)).toFixed(1);
+                    }
+                    
+                    let cx1 = currentPt.x_raw * scale + offsetX; let cy1 = currentPt.y_raw * scale + offsetY;
+                    let cx2 = nextPt.x_raw * scale + offsetX; let cy2 = nextPt.y_raw * scale + offsetY;
+                    let mx_sub = (cx1 + cx2) / 2; let my_sub = (cy1 + cy2) / 2;
+                    
+                    textPositions.push({ x: mx_sub, y: my_sub, currentText: partDistText, ref: { get customDist() { return nextPt.customSubLineDist; }, set customDist(v) { nextPt.customSubLineDist = v; } } });
+                    drawTextAlongLine(partDistText, cx1, cy1, cx2, cy2, "#000000");
+                    
+                    currentPt = nextPt;
+                }
+            }
+        });
+
+        // [FIXED]: அட்ஜஸன்ட் லைன் (Adjacent Boundary) கோடு வரைவதற்கான குறியீடு பக்காவாக திருத்தப்பட்டுள்ளது.
+        frillExtensions.forEach(ext => {
+            ctx.beginPath();
+            ctx.moveTo(ext.x1_raw * scale + offsetX, ext.y1_raw * scale + offsetY);
+            ctx.lineTo(ext.x2_raw * scale + offsetX, ext.y2_raw * scale + offsetY);
+            ctx.strokeStyle = "#000000"; 
+            ctx.lineWidth = 1.5; 
+            ctx.stroke(); // இங்கு விழுந்த பிழை தற்போது சரிசெய்யப்பட்டுள்ளது
+        });
+
+        textLabels.forEach(lbl => {
+            ctx.fillStyle = "#000000"; ctx.font = "bold 12px Arial, Tamil";
+            ctx.textAlign = "center"; ctx.fillText(lbl.text, lbl.x_raw * scale + offsetX, lbl.y_raw * scale + offsetY);
+        });
+
+        if (isDrawingModeForDots) {
+            innerPoints.forEach(p => { ctx.fillStyle = "#e53e3e"; ctx.beginPath(); ctx.arc(p.x_raw * scale + offsetX, p.y_raw * scale + offsetY, 5, 0, 2 * Math.PI); ctx.fill(); });
+        }
+        
+        if (selectedPointForLine && isDrawingModeForDots) { ctx.strokeStyle = "#ed8936"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(selectedPointForLine.x_raw * scale + offsetX, selectedPointForLine.y_raw * scale + offsetY, 10, 0, 2 * Math.PI); ctx.stroke(); }
+        
+        if (activeCircle && isDrawingModeForDots) {
+            let cx = activeCircle.x_raw * scale + offsetX; 
+            let cy = activeCircle.y_raw * scale + offsetY;
+            let cr = activeCircle.radiusMeters * scale; 
+
+            ctx.beginPath(); ctx.arc(cx, cy, cr, 0, 2 * Math.PI);
+            ctx.strokeStyle = "#48bb78"; ctx.lineWidth = 1.5; ctx.stroke();
+
+            for (let i = 0; i < 8; i++) {
+                let angleRad = (i * 45) * Math.PI / 180;
+                let lineX = cx + cr * Math.cos(angleRad); let lineY = cy + cr * Math.sin(angleRad);
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(lineX, lineY);
+                ctx.strokeStyle = "rgba(72, 187, 120, 0.4)"; ctx.lineWidth = 1; ctx.stroke();
+            }
+        }
+    }
+
+    function drawTextAlongLine(text, x1, y1, x2, y2, colorStr) {
+        let midX = (x1 + x2) / 2; let midY = (y1 + y2) / 2;
+        let dx = x2 - x1; let dy = y2 - y1; let len = Math.sqrt(dx*dx + dy*dy);
+        if(len === 0) return;
+
+        ctx.save(); ctx.fillStyle = colorStr; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.translate(midX, midY - 7);
+        let angle = Math.atan2(dy, dx); if (angle > Math.PI/2 || angle < -Math.PI/2) angle += Math.PI;
+        ctx.rotate(angle); ctx.fillText(text, 0, 0); ctx.restore();
+    }
+
+    function drawTextOffsetFixed(text, x1, y1, x2, y2, centerX, centerY, wantOuter, colorStr) {
+        let midX = (x1 + x2) / 2; let midY = (y1 + y2) / 2;
+        let dx = x2 - x1; let dy = y2 - y1; let len = Math.sqrt(dx*dx + dy*dy);
+        if(len === 0) return;
+
+        let nx = -dy / len; let ny = dx / len;
+        let toCenterDx = centerX - midX; let toCenterDy = centerY - midY;
+        let dotProduct = toCenterDx * nx + toCenterDy * ny;
+
+        if (dotProduct < 0) { nx = -nx; ny = -ny; }
+
+        let distOffset = wantOuter ? -14 : 14;
+        let finalX = midX + nx * distOffset; let finalY = midY + ny * distOffset;
+
+        ctx.save(); ctx.fillStyle = colorStr; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.translate(finalX, finalY);
+        let angle = Math.atan2(dy, dx); if (angle > Math.PI/2 || angle < -Math.PI/2) angle += Math.PI;
+        ctx.rotate(angle); ctx.fillText(text, 0, 0); ctx.restore();
+    }
+
+    function printFMBFinalPDF() {
+        let surveyNum = document.getElementById('view_survey').innerText || "FMB";
+        let originalTitle = document.title;
+        document.title = "FMB_Report_" + surveyNum.replace("/", "-");
+        window.print(); 
+        document.title = originalTitle;
+    }
+
+    function closeOuterBoundary() {
+        if (outerPoints.length < 3) { alert("எல்லையை மூட குறைந்தபட்சம் 3 புள்ளிகள் தேவை!"); return; }
+        isOuterClosed = true; activeCircle = null;
+        let p1 = outerPoints[outerPoints.length - 1]; let p2 = outerPoints[0];
+        let dPx = Math.sqrt((p1.x_raw - p2.x_raw)**2 + (p1.y_raw - p2.y_raw)**2);
+        p2.dist = parseFloat(dPx.toFixed(1));
+        initScale(); 
+        document.getElementById('drawingMode').value = 'inner_point'; toggleMode();
+    }
+
+    function undoLastAction() {
+        let mode = document.getElementById('drawingMode').value;
+        if (mode === 'outer') { 
+            if(isOuterClosed) isOuterClosed = false; 
+            else outerPoints.pop(); 
+            initScale(); 
+        } 
+        else if (mode === 'inner_point') { 
+            if(activeCircle) activeCircle = null; 
+            else innerPoints.pop(); 
+            redrawAll(); 
+        } 
+        else if (mode === 'inner_line') { 
+            innerLines.pop(); 
+            redrawAll(); 
+        } 
+        else if (mode === 'frill_draw') { 
+            frillStartPoint = null; 
+            let lastFrill = frillExtensions.pop();
+            if (lastFrill) {
+                innerPoints = innerPoints.filter(ip => 
+                    !(Math.sqrt((ip.x_raw - lastFrill.x1_raw)**2 + (ip.y_raw - lastFrill.y1_raw)**2) < 0.01)
+                );
+            }
+            redrawAll(); 
+        }
+        else if (mode === 'adj_text') { 
+            textLabels.pop(); 
+            redrawAll(); 
+        }
+        selectedPointForLine = null; 
+        redrawAll();
+    }
+
+    function resetCanvas() {
+        outerPoints = []; innerPoints = []; innerLines = []; frillExtensions = []; textLabels = []; textPositions = [];
+        isOuterClosed = false; activeCircle = null; selectedPointForLine = null; frillStartPoint = null;
+        isDrawingModeForDots = true;
+        document.getElementById('toggleDotsVisibility').checked = true;
+        initScale(); document.getElementById('drawingMode').value = 'outer'; toggleMode();
+    }
+</script>
+
+</body>
+</html> -->

@@ -51,7 +51,7 @@ function Navbar({ setPage, currentPage }) {
           ☰
         </button>
 
-        <span style={styles.heading}>Surveyor Calculations</span>
+        <span style={styles.heading}>Surveyor Works</span>
 
         {/* 🔹 Profile Section */}
         <div style={styles.profileContainer} ref={profileRef}>
@@ -106,12 +106,12 @@ function Navbar({ setPage, currentPage }) {
         >
           Intersection Calculation
         </button>
-
+        
         <button
-          style={getLinkStyle("areaconversion")}
-          onClick={() => handleNavigation("areaconversion")}
+          style={getLinkStyle("fline")}
+          onClick={() => handleNavigation("fline")}
         >
-          Unit Conversion
+          F Line Statement
         </button>
 
       </div>
