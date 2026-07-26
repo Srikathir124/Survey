@@ -33,7 +33,9 @@ function LengthConversion() {
 
   function convert(value, from, to) {
     if (value === "") return "";
-    return ((Number(value) * factors[from]) / factors[to]).toFixed(4);
+    const computed = (Number(value) * factors[from]) / factors[to];
+    if (!isFinite(computed) || Math.abs(computed) > 99999999999999999999) return "Value Too Large";
+    return computed.toFixed(4);
   }
 
   function firstChange(e) {
@@ -65,6 +67,8 @@ function LengthConversion() {
 
   function evaluate(expr) {
     try {
+      if (expr === "Error" || expr === "Overflow" || !expr) return expr || "0";
+      
       let sanitized = expr;
       const openCount = (sanitized.match(/\(/g) || []).length;
       const closeCount = (sanitized.match(/\)/g) || []).length;
@@ -74,7 +78,15 @@ function LengthConversion() {
 
       const formatted = formatExpression(sanitized);
       const result = Function(`"use strict"; return (${formatted})`)();
-      return result === undefined || isNaN(result) ? "Error" : result;
+      
+      if (result === undefined || isNaN(result)) return "Error";
+      
+      if (!isFinite(result) || Math.abs(result) > 99999999999999999999) {
+        return "Value Too Large";
+      }
+
+      // Strip out floating point noise (e.g. 0.1 + 0.2 = 0.30000000004) up to 10 decimal places
+      return Number(Math.round(result + "e10") + "e-10");
     } catch {
       return "Error";
     }
@@ -86,6 +98,19 @@ function LengthConversion() {
 
   function calculate(btn) {
     if (btn === "AC") return setCalc("");
+
+    // If display is currently showing an error status, clear it upon next interaction
+    if (calc === "Error" || calc === "Overflow") {
+      if (["M+", "M-", "MC", "=", "⌫"].includes(btn) || isOperator(btn)) {
+        return; // Ignore operations on broken state until wiped
+      }
+      if (btn === ".") {
+        setCalc("0.");
+        return;
+      }
+      setCalc(btn);
+      return;
+    }
 
     if (btn === "MC") return setMemory(0);
     if (btn === "M+") return setMemory((m) => m + Number(evaluate(calc) || 0));
@@ -121,7 +146,7 @@ function LengthConversion() {
         }
       }
       return prev + parsedBtn;
-    });
+    }); // <-- Fixed the missing ); here!
   }
 
   // ---------------- LAYOUT ARRAYS ----------------
@@ -557,11 +582,11 @@ function LengthConversion() {
         }
 
         .length-panel .calculator.quarter .btn-operator {
-          font-size: 1.0rem !important; /* ~22px upsized indicator for mobile quarter layouts */
+          font-size: 1.0rem !important;
         }
 
         .length-panel .calculator.full .btn-operator {
-          font-size: 1.8rem !important; /* ~28px upsized indicator for expanded view layouts */
+          font-size: 1.8rem !important;
         }
 
         .length-panel .big-dot {

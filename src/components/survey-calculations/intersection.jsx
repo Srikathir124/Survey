@@ -212,8 +212,8 @@ export default function OffsetIntersectionUI() {
 
         {/* Inputs with professional behavior */}
         <foreignObject x="340" y={Y.y - 15} width="80" height="30">
-          <input ref={refC1}
-            value={C1}
+          <input ref={refC1} value={C1}
+            type="number" inputMode="numeric" pattern="[0-9]*"
             onChange={handleNumberInput(setC1)}
             onKeyDown={handleKey(refO1)}
             placeholder="A to Y"
@@ -222,8 +222,8 @@ export default function OffsetIntersectionUI() {
         </foreignObject>
 
         <foreignObject x="200" y={Y.y + 20} width="70" height="30">
-          <input ref={refO1}
-            value={O1}
+          <input ref={refO1} value={O1}
+            type="number" inputMode="numeric" pattern="[0-9]*"
             onChange={handleNumberInput(setO1)}
             onKeyDown={handleKey(refC2)}
             placeholder="1 to Y"
@@ -232,8 +232,8 @@ export default function OffsetIntersectionUI() {
         </foreignObject>
 
         <foreignObject x="190" y={Z.y - 15} width="80" height="30">
-          <input ref={refC2}
-            value={C2}
+          <input ref={refC2}  value={C2}
+            type="number" inputMode="numeric" pattern="[0-9]*"
             onChange={handleNumberInput(setC2)}
             onKeyDown={handleKey(refO2)}
             placeholder="A to Z"
@@ -242,8 +242,8 @@ export default function OffsetIntersectionUI() {
         </foreignObject>
 
         <foreignObject x="360" y={Z.y - 50} width="70" height="30">
-          <input ref={refO2}
-            value={O2}
+          <input ref={refO2}  value={O2}
+            type="number" inputMode="numeric" pattern="[0-9]*"
             onChange={handleNumberInput(setO2)}
             onKeyDown={(e) => e.key === "Enter" && handleCalculate()}
             placeholder="2 to Z"

@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import "./App.css";
 import Navbar from "./components/navbar";
-import Nos from "./components/survey-calculations/nos";
-import Pythagoras from "./components/survey-calculations/pythogoras";
-import OffsetIntersectionUI from "./components/survey-calculations/intersection";
+import LengthConversion from "./components/lengthconversion";
 import AreaConversion from "./components/survey-calculations/areaconversion";
-import LenghtConversion from "./components/lengthconversion";
+import UnevenShapes from "./components/survey-calculations/uneven-shapes";
+import Pythagoras from "./components/survey-calculations/pythogoras";
+import Nos from "./components/survey-calculations/nos";
+import OffsetIntersectionUI from "./components/survey-calculations/intersection";
 import NotesPanel from "./components/notes";
 
 function App() {
-  const [page, setPage] = useState("nos");
+  const [page, setPage] = useState("unevenshapes");
 
   const renderPage = () => {
     switch (page) {
@@ -21,8 +22,10 @@ function App() {
         return <OffsetIntersectionUI/>
       case "areaconversion":
         return <AreaConversion/>
+      case "unevenshapes":
+        return <UnevenShapes/>
       default:
-        return <Nos/>;
+        return <UnevenShapes/>;
     }
   };
 
@@ -32,7 +35,7 @@ function App() {
       <div style={{ marginTop: "60px", padding: "20px" }}>
         {renderPage()}
       </div>
-      <LenghtConversion/>
+      <LengthConversion/>
       <NotesPanel/>
     </div>
   );

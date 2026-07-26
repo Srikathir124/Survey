@@ -80,6 +80,20 @@ function Navbar({ setPage, currentPage }) {
         }}
       >
         <button
+          style={getLinkStyle("unevenshapes")}
+          onClick={() => handleNavigation("unevenshapes")}
+        >
+          Area of Uneven Shapes
+        </button>
+        
+        <button
+          style={getLinkStyle("pythagoras")}
+          onClick={() => handleNavigation("pythagoras")}
+        >
+          Pythagoras Calculation
+        </button>
+
+        <button
           style={getLinkStyle("nos")}
           onClick={() => handleNavigation("nos")}
         >
@@ -94,19 +108,12 @@ function Navbar({ setPage, currentPage }) {
         </button>
 
         <button
-          style={getLinkStyle("pythagoras")}
-          onClick={() => handleNavigation("pythagoras")}
-        >
-          Pythagoras Calculation
-        </button>
-        
-
-        <button
           style={getLinkStyle("areaconversion")}
           onClick={() => handleNavigation("areaconversion")}
         >
           Unit Conversion
         </button>
+
       </div>
 
       {/* 🔹 Overlay */}
@@ -132,7 +139,7 @@ const styles = {
     position: "fixed",
     width: "100%",
     top: 0,
-    zIndex: 1000,
+    zIndex: 10000,
   },
   burger: {
     fontSize: "22px",
@@ -199,7 +206,7 @@ const styles = {
     padding: "20px",
     boxSizing: "border-box",
     transition: "left 0.3s ease",
-    zIndex: 1001,
+    zIndex: 10002,
   },
   link: {
     background: "transparent",
@@ -217,7 +224,7 @@ const styles = {
     width: "100%",
     height: "100%",
     background: "rgba(0,0,0,0.3)",
-    zIndex: 1000,
+    zIndex: 10001,
   },
 };
 
