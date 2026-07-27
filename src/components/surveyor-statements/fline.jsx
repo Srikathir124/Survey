@@ -1340,14 +1340,14 @@ export default function FMBReportTool() {
         {/* Dynamic Canvas Drawing Print Block */}
         {applicantStatus === 'satisfied' && (
           <div style={{ position: 'relative', boxSizing: 'border-box', paddingTop: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: '#000000' }}>
+            {/* <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: '#000000' }}>
               <div>மாவட்டம்: <span style={{ borderBottom: '1px solid #000', padding: '0 5px', minWidth: '40px', display: 'inline-block' }}>{district}</span></div>
               <div>வட்டம்: <span style={{ borderBottom: '1px solid #000', padding: '0 5px', minWidth: '40px', display: 'inline-block' }}>{taluk}</span></div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: '#000000' }}>
               <div>கிராமம்: <span style={{ borderBottom: '1px solid #000', padding: '0 5px', minWidth: '40px', display: 'inline-block' }}>{village}</span></div>
               <div>புல எண்/உட்பிரிவு எண்: <span style={{ borderBottom: '1px solid #000', padding: '0 5px', minWidth: '40px', display: 'inline-block' }}>{survey}</span></div>
-            </div>
+            </div> */}
 
             <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
               <canvas
