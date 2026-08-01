@@ -1,21 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-function LengthConversion() {
-  const units = ["meter", "foot", "inch"];
-
-  const factors = {
-    meter: 1,
-    foot: 0.3048,
-    inch: 0.0254,
-  };
-
-  const [value1, setValue1] = useState("");
-  const [value2, setValue2] = useState("");
-  const [unit1, setUnit1] = useState("meter");
-  const [unit2, setUnit2] = useState("foot");
-
-  const [panel, setPanel] = useState("quarter");
-
+function Calculator({ panel = "quarter" }) {
   const [calc, setCalc] = useState("");
   const [memory, setMemory] = useState(0);
 
@@ -29,33 +14,6 @@ function LengthConversion() {
     }
   }, [calc]);
 
-  // ---------------- CONVERTER ----------------
-
-  function convert(value, from, to) {
-    if (value === "") return "";
-    const computed = (Number(value) * factors[from]) / factors[to];
-    if (!isFinite(computed) || Math.abs(computed) > 99999999999999999999) return "Value Too Large";
-    return computed.toFixed(4);
-  }
-
-  function firstChange(e) {
-    const val = e.target.value;
-    setValue1(val);
-    setValue2(convert(val, unit1, unit2));
-  }
-
-  function changeFrom(e) {
-    const u = e.target.value;
-    setUnit1(u);
-    setValue2(convert(value1, u, unit2));
-  }
-
-  function changeTo(e) {
-    const u = e.target.value;
-    setUnit2(u);
-    setValue2(convert(value1, unit1, u));
-  }
-
   // ---------------- CASIO ENGINE ----------------
 
   function formatExpression(expr) {
@@ -68,7 +26,7 @@ function LengthConversion() {
   function evaluate(expr) {
     try {
       if (expr === "Error" || expr === "Overflow" || !expr) return expr || "0";
-      
+
       let sanitized = expr;
       const openCount = (sanitized.match(/\(/g) || []).length;
       const closeCount = (sanitized.match(/\)/g) || []).length;
@@ -78,9 +36,9 @@ function LengthConversion() {
 
       const formatted = formatExpression(sanitized);
       const result = Function(`"use strict"; return (${formatted})`)();
-      
+
       if (result === undefined || isNaN(result)) return "Error";
-      
+
       if (!isFinite(result) || Math.abs(result) > 99999999999999999999) {
         return "Value Too Large";
       }
@@ -146,7 +104,7 @@ function LengthConversion() {
         }
       }
       return prev + parsedBtn;
-    }); // <-- Fixed the missing ); here!
+    });
   }
 
   // ---------------- LAYOUT ARRAYS ----------------
@@ -177,136 +135,56 @@ function LengthConversion() {
   const currentButtons = panel === "quarter" ? quarterLayout : traditionalLayout;
 
   return (
-    <>
-      {/* OPEN BUTTON */}
-      {panel === "hidden" && (
-        <button
-          className="calculator-open-arrow"
-          onClick={() => setPanel("quarter")}
-          aria-label="Open calculator"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+    <div className="calculator-wrapper">
+      <div className={`calculator ${panel}`}>
+        <div className="calc-display-wrapper">
+          <div
+            ref={displayRef}
+            className="calc-display"
           >
-            <rect x="4" y="2" width="16" height="20" rx="2" />
-            <rect x="7" y="5" width="10" height="4" rx="1" />
-            <path d="M7 11h2M11 11h2M15 11h2M7 15h2M11 15h2M15 15h2M7 19h2M11 19h2M15 19h2" />
-          </svg>
-        </button>
-      )}
+            {calc || "0"}
+          </div>
+        </div>
 
-      {/* PANEL CONTAINER */}
-      <div className={`length-panel ${panel}`}>
-        {panel !== "hidden" && (
-          <>
-            {/* TOOLBAR */}
-            <div className="toolbar">
-              {panel === "full" ? (
-                <button onClick={() => setPanel("quarter")}>¼</button>
-              ) : (
-                <button onClick={() => setPanel("full")}>⛶</button>
-              )}
-              <button onClick={() => setPanel("hidden")}>✕</button>
-            </div>
+        <div className="memory">M: {memory}</div>
 
-            <div className="content">
-              {/* ================= CONVERTER ================= */}
-              <div className={`converterCard ${panel}`}>
-                <div className="converterRow">
-                  <div className="box">
-                    <input
-                      type="number"
-                      value={value1}
-                      onChange={firstChange}
-                      placeholder="Enter"
-                    />
-                    <select value={unit1} onChange={changeFrom}>
-                      {units.map((u) => (
-                        <option key={u}>{u}</option>
-                      ))}
-                    </select>
-                  </div>
+        <div className={`calc-buttons ${panel === "quarter" ? "two-col" : "four-col"}`}>
+          {currentButtons.map((btn) => {
+            let displayLabel = btn;
+            if (btn === "*") displayLabel = "×";
+            if (btn === "/") displayLabel = "÷";
+            if (btn === ".") {
+              displayLabel = <span className="big-dot">•</span>;
+            }
 
-                  <button className="swapBtn">⇄</button>
+            // Dynamic alignment logic for grid rules
+            let dynamicStyle = {};
+            if (panel === "quarter" && btn === "=") {
+              dynamicStyle = { gridColumn: "span 2" };
+            } else if (panel !== "quarter" && (btn === "0" || btn === "=")) {
+              dynamicStyle = { gridColumn: "span 2" };
+            }
 
-                  <div className="box">
-                    <input value={value2} readOnly placeholder="Result" />
-                    <select value={unit2} onChange={changeTo}>
-                      {units.map((u) => (
-                        <option key={u}>{u}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
+            // Check if the current button is one of the target math operators
+            const isMathOperator = ["+", "-", "*", "/", "×", "÷"].includes(btn);
+            let buttonClass = btn === "AC" ? "red" : "";
+            if (isMathOperator) {
+              buttonClass += " btn-operator";
+            }
 
-              {/* ================= CALCULATOR ================= */}
-              <div className="calculator-wrapper">
-                <div className={`calculator ${panel}`}>
-                  
-                  <div className="calc-display-wrapper">
-                    <div 
-                      ref={displayRef} 
-                      className="calc-display"
-                    >
-                      {calc || "0"}
-                    </div>
-                  </div>
-
-                  <div className="memory">M: {memory}</div>
-
-                  <div className={`calc-buttons ${panel === "quarter" ? "two-col" : "four-col"}`}>
-                    {currentButtons.map((btn) => {
-                      let displayLabel = btn;
-                      if (btn === "*") displayLabel = "×";
-                      if (btn === "/") displayLabel = "÷";
-                      if (btn === ".") {
-                        displayLabel = <span className="big-dot">•</span>;
-                      }
-
-                      // Dynamic alignment logic for grid rules
-                      let dynamicStyle = {};
-                      if (panel === "quarter" && btn === "=") {
-                        dynamicStyle = { gridColumn: "span 2" };
-                      } else if (panel !== "quarter" && (btn === "0" || btn === "=")) {
-                        dynamicStyle = { gridColumn: "span 2" };
-                      }
-
-                      // Check if the current button is one of the target math operators
-                      const isMathOperator = ["+", "-", "*", "/", "×", "÷"].includes(btn);
-                      let buttonClass = btn === "AC" ? "red" : "";
-                      if (isMathOperator) {
-                        buttonClass += " btn-operator";
-                      }
-
-                      return (
-                        <button
-                          key={btn}
-                          onClick={() => calculate(btn)}
-                          className={buttonClass.trim()}
-                          style={dynamicStyle}
-                        >
-                          {displayLabel}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+            return (
+              <button
+                key={btn}
+                onClick={() => calculate(btn)}
+                className={buttonClass.trim()}
+                style={dynamicStyle}
+              >
+                {displayLabel}
+              </button>
+            );
+          })}
+        </div>
       </div>
-
-      {/* ================= STYLES ================= */}
       <style>{`
         .length-panel {
           position: fixed;
@@ -319,12 +197,14 @@ function LengthConversion() {
           box-sizing: border-box;
         }
 
+
         .length-panel.hidden {
           width: 0 !important;
           box-shadow: none !important;
           border: none !important;
           display: none !important;
         }
+
 
         .length-panel.quarter {
           width: 25vw;
@@ -333,6 +213,7 @@ function LengthConversion() {
           overflow-x: hidden;
         }
 
+
         .length-panel.full {
           width: 100vw;
           box-shadow: -5px 0 20px rgba(0,0,0,.25);
@@ -340,12 +221,14 @@ function LengthConversion() {
           overflow-x: hidden;
         }
 
+
         .length-panel .toolbar {
           display: flex;
           gap: 4px;
           padding: 6px;
           background: #f1f5f9;
         }
+
 
         .length-panel .toolbar button {
           flex: 1;
@@ -356,6 +239,7 @@ function LengthConversion() {
           border-radius: 6px;
           cursor: pointer;
         }
+
 
         .calculator-open-arrow {
           position: fixed !important;
@@ -375,6 +259,7 @@ function LengthConversion() {
           box-shadow: -2px 2px 10px rgba(0,0,0,0.3) !important;
         }
 
+
         .length-panel .content {
           padding: 12px;
           display: flex;
@@ -383,6 +268,7 @@ function LengthConversion() {
           box-sizing: border-box;
           width: 100%;
         }
+
 
         /* ===== CONVERTER UI ===== */
         .length-panel .converterCard {
@@ -394,9 +280,11 @@ function LengthConversion() {
           box-sizing: border-box;
         }
 
+
         .length-panel .converterCard.full {
           padding: 24px;
         }
+
 
         .length-panel .converterCard.quarter .converterRow {
           display: flex;
@@ -406,6 +294,7 @@ function LengthConversion() {
           width: 100%;
         }
 
+
         .length-panel .converterCard.full .converterRow {
           display: flex;
           flex-direction: row;
@@ -413,6 +302,7 @@ function LengthConversion() {
           gap: 16px;
           width: 100%;
         }
+
 
         .length-panel .box {
           width: 100% !important;
@@ -424,19 +314,21 @@ function LengthConversion() {
           padding: 0 !important;
           box-shadow: none !important;
         }
-          
-        .length-panel .converterCard.quarter input, 
+         
+        .length-panel .converterCard.quarter input,
         .length-panel .converterCard.quarter select {
           padding: 6px;
           font-size: 13px;
         }
 
-        .length-panel .converterCard.full input, 
+
+        .length-panel .converterCard.full input,
         .length-panel .converterCard.full select {
           padding: 14px;
           font-size: 18px;
           border-radius: 10px;
         }
+
 
         .length-panel input, .length-panel select {
           width: 100%;
@@ -446,12 +338,14 @@ function LengthConversion() {
           border-radius: 6px;
         }
 
+
         .length-panel .converterCard.quarter .swapBtn {
           width: 36px;
           height: 36px;
           font-size: 16px;
           transform: rotate(90deg);
         }
+
 
         .length-panel .converterCard.full .swapBtn {
           width: 54px;
@@ -461,6 +355,7 @@ function LengthConversion() {
           flex-shrink: 0;
         }
 
+
         .length-panel .swapBtn {
           border-radius: 12px;
           border: none;
@@ -468,6 +363,7 @@ function LengthConversion() {
           color: white;
           cursor: pointer;
         }
+
 
         /* ===== CALCULATOR STYLES ===== */
         .length-panel .calculator-wrapper {
@@ -478,6 +374,7 @@ function LengthConversion() {
           box-sizing: border-box;
         }
 
+
         .length-panel .calculator {
           width: 100%;
           background: #292929;
@@ -486,15 +383,18 @@ function LengthConversion() {
           padding: 10px;
         }
 
+
         .length-panel .calculator.quarter {
           max-width: 100%;
           padding: 10px;
         }
 
+
         .length-panel .calculator.full {
           max-width: 600px;
           padding: 24px;
         }
+
 
         .length-panel .calc-display-wrapper {
           width: 100%;
@@ -504,17 +404,20 @@ function LengthConversion() {
           box-sizing: border-box;
         }
 
+
         .length-panel .calculator.quarter .calc-display {
           height: 46px;
           font-size: 22px;
           line-height: 46px;
         }
 
+
         .length-panel .calculator.full .calc-display {
           height: 75px;
           font-size: 38px;
           line-height: 75px;
         }
+
 
         .length-panel .calc-display {
           font-family: monospace;
@@ -523,11 +426,12 @@ function LengthConversion() {
           transition: background 0.2s ease-in-out;
           padding: 0 12px;
           text-align: right;            
-          overflow-x: auto;             
-          overflow-y: hidden;           
+          overflow-x: auto;            
+          overflow-y: hidden;          
           white-space: nowrap;          
           -webkit-overflow-scrolling: touch;
         }
+
 
         .length-panel .calc-display::-webkit-scrollbar {
           display: none;
@@ -537,10 +441,12 @@ function LengthConversion() {
           scrollbar-width: none;
         }
 
+
         .length-panel .calc-display-wrapper:hover .calc-display {
           background: #c9d4b3;
           box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
         }
+
 
         .length-panel .memory {
           color: white;
@@ -549,23 +455,28 @@ function LengthConversion() {
           margin: 6px 0 12px 0;
         }
 
+
         .length-panel .calc-buttons {
           display: grid;
           gap: 6px;
           width: 100%;
         }
 
+
         .length-panel .calculator.full .calc-buttons {
           gap: 10px;
         }
+
 
         .length-panel .calc-buttons.two-col {
           grid-template-columns: repeat(2, 1fr) !important;
         }
 
+
         .length-panel .calc-buttons.four-col {
           grid-template-columns: repeat(4, 1fr) !important;
         }
+
 
         .length-panel .calculator.quarter .calc-buttons button {
           height: 36px;
@@ -573,12 +484,14 @@ function LengthConversion() {
           touch-action: manipulation;
         }
 
+
         .length-panel .calculator.full .calc-buttons button {
           height: 56px;
           font-size: 20px;
           border-radius: 8px;
           touch-action: manipulation;
         }
+
 
         .length-panel .calc-buttons button {
           background: #111827;
@@ -593,19 +506,23 @@ function LengthConversion() {
           justify-content: center;
         }
 
+
         /* Operator-specific style override (Bigger font, orange background) */
         .length-panel .btn-operator {
           background-color: #f97316 !important; /* Bold accessible orange */
           font-weight: bold !important;
         }
 
+
         .length-panel .calculator.quarter .btn-operator {
           font-size: 1.0rem !important;
         }
 
+
         .length-panel .calculator.full .btn-operator {
           font-size: 1.8rem !important;
         }
+
 
         .length-panel .big-dot {
           font-size: 1.5rem;
@@ -614,9 +531,11 @@ function LengthConversion() {
           transform: translateY(-2px);
         }
 
+
         .length-panel .red {
           background: #b91c1c !important;
         }
+
 
         @media (max-width: 600px) {
           .length-panel.quarter {
@@ -624,8 +543,8 @@ function LengthConversion() {
           }
         }
       `}</style>
-    </>
+    </div>
   );
 }
 
-export default LengthConversion;
+export default Calculator;

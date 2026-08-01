@@ -1,17 +1,15 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import ReactGA from "react-ga4";
 
 function Navbar({ setPage, currentPage }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const profileRef = useRef(null);
 
   const handleNavigation = (page) => {
     setPage(page);
     setIsOpen(false);
     ReactGA.event({
       category: "Navigation",
-      action: page +"Navigation",
+      action: page + "Navigation",
     });
   };
 
@@ -23,53 +21,15 @@ function Navbar({ setPage, currentPage }) {
     padding: "10px",
   });
 
-  // 🔹 Close profile when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(event.target)
-      ) {
-        setProfileOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   return (
     <>
       {/* 🔹 Top Bar */}
       <div style={styles.topbar}>
-        <button
-          style={styles.burger}
-          onClick={() => setIsOpen(!isOpen)}
-        >
+        <button style={styles.burger} onClick={() => setIsOpen(!isOpen)}>
           ☰
         </button>
 
         <span style={styles.heading}>Surveyor Works</span>
-
-        {/* 🔹 Profile Section */}
-        <div style={styles.profileContainer} ref={profileRef}>
-          <div
-            style={styles.profileIcon}
-            onClick={() => setProfileOpen(!profileOpen)}
-          >
-            SK
-          </div>
-
-          {profileOpen && (
-            <div style={styles.profileDropdown}>
-              <div style={styles.profileName}>Sri Kathiravan</div>
-              <div style={styles.profileSub}>Field Surveyor</div>
-              <div style={styles.profileSub}>Kallakurichi</div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* 🔹 Sidebar */}
@@ -79,50 +39,56 @@ function Navbar({ setPage, currentPage }) {
           left: isOpen ? "0" : "-240px",
         }}
       >
-        <button
-          style={getLinkStyle("unevenshapes")}
-          onClick={() => handleNavigation("unevenshapes")}
-        >
-          Area of Uneven Shapes
-        </button>
-        
-        <button
-          style={getLinkStyle("pythagoras")}
-          onClick={() => handleNavigation("pythagoras")}
-        >
-          Pythagoras Calculation
-        </button>
+        <div style={styles.menuItems}>
+          <button
+            style={getLinkStyle("unevenshapes")}
+            onClick={() => handleNavigation("unevenshapes")}
+          >
+            Area of Uneven Shapes
+          </button>
 
-        <button
-          style={getLinkStyle("nos")}
-          onClick={() => handleNavigation("nos")}
-        >
-          NOS Calculation
-        </button>
+          <button
+            style={getLinkStyle("pythagoras")}
+            onClick={() => handleNavigation("pythagoras")}
+          >
+            Pythagoras Calculation
+          </button>
 
-        <button
-          style={getLinkStyle("intersection")}
-          onClick={() => handleNavigation("intersection")}
-        >
-          Intersection Calculation
-        </button>
-        
-        <button
-          style={getLinkStyle("fline")}
-          onClick={() => handleNavigation("fline")}
-        >
-          F Line Statement
-        </button>
+          <button
+            style={getLinkStyle("nos")}
+            onClick={() => handleNavigation("nos")}
+          >
+            NOS Calculation
+          </button>
 
+          <button
+            style={getLinkStyle("intersection")}
+            onClick={() => handleNavigation("intersection")}
+          >
+            Intersection Calculation
+          </button>
+
+          <button
+            style={getLinkStyle("fline")}
+            onClick={() => handleNavigation("fline")}
+          >
+            F Line Statement
+          </button>
+        </div>
+
+        <div style={styles.footerItems}>
+          <button 
+            // style={getLinkStyle("help")}
+            style={{display:'none'}}
+            onClick={() => handleNavigation("help")}
+          >
+            Facing Issues?
+          </button>
+        </div>
       </div>
 
       {/* 🔹 Overlay */}
-      {isOpen && (
-        <div
-          style={styles.overlay}
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {isOpen && <div style={styles.overlay} onClick={() => setIsOpen(false)} />}
     </>
   );
 }
@@ -154,45 +120,6 @@ const styles = {
     marginLeft: "10px",
     flex: 1,
   },
-
-  // 🔹 Profile styles
-  profileContainer: {
-    position: "relative",
-    marginRight: "30px", // 👈 pushes it slightly left
-  },
-  profileIcon: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "50%",
-    background: "#4CAF50", // bright green (high contrast)
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "bold",
-    cursor: "pointer",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-  },
-  profileDropdown: {
-    position: "absolute",
-    right: 0,
-    top: "40px",
-    background: "#fff",
-    color: "#000",
-    borderRadius: "8px",
-    padding: "10px",
-    minWidth: "180px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-  },
-  profileName: {
-    fontWeight: "bold",
-    marginBottom: "5px",
-  },
-  profileSub: {
-    fontSize: "14px",
-    color: "#555",
-  },
-
   navbar: {
     position: "fixed",
     top: "60px",
@@ -207,6 +134,14 @@ const styles = {
     boxSizing: "border-box",
     transition: "left 0.3s ease",
     zIndex: 10002,
+    justifyContent: "space-between",
+  },
+  menuItems: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  footerItems: {
+    marginBottom: "80px", // Pushed up due to topbar offset
   },
   link: {
     background: "transparent",
@@ -216,6 +151,7 @@ const styles = {
     cursor: "pointer",
     fontSize: "16px",
     marginBottom: "10px",
+    width: "100%",
   },
   overlay: {
     position: "fixed",

@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import "./App.css";
 import Navbar from "./components/navbar";
-import LengthConversion from "./components/lengthconversion";
+import LengthConversion from "./components//common/lengthconversion";
 import UnevenShapes from "./components/survey-calculations/uneven-shapes";
 import Pythagoras from "./components/survey-calculations/pythogoras";
 import Nos from "./components/survey-calculations/nos";
 import OffsetIntersectionUI from "./components/survey-calculations/intersection";
-import NotesPanel from "./components/notes";
+import NotesPanel from "./components/common/notes";
 import FLineReport from "./components/surveyor-statements/fline";
+import Help from "./components/help";
 
 function App() {
   const [page, setPage] = useState("unevenshapes");
@@ -24,6 +25,8 @@ function App() {
         return <UnevenShapes/>
       case "fline":
         return <FLineReport/>
+      case "help":
+        return <Help/>
       default:
         return <UnevenShapes/>;
     }
