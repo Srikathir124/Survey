@@ -64,7 +64,7 @@ export default function FMBReportTool() {
     if (!savedFmbData || !savedFmbData.outerPoints || savedFmbData.outerPoints.length === 0) {
       return (
         <div className="drawing-placeholder-box" onClick={() => setIsDrawingModalOpen(true)}>
-          <span>✏️ புல வரைபடம் வரைய கிளிக் செய்யவும் (Click to draw FMB sketch)</span>
+          <span>✏️ Click to draw FMB sketch</span>
         </div>
       );
     }
@@ -192,13 +192,13 @@ export default function FMBReportTool() {
             value={applicantStatus}
             onChange={(e) => setApplicantStatus(e.target.value)}
           >
-            <option value="satisfied">1. திருப்தி அடைந்தார் (Satisfied - With Sketch)</option>
-            <option value="not_satisfied">2. திருப்தி அடையவில்லை (Not Satisfied - No Sketch)</option>
+            <option value="satisfied">1. மனுதாரர்  திருப்தி அடைந்தார் (Satisfied)</option>
+            <option value="not_satisfied">2. மனுதாரர் திருப்தி அடையவில்லை (Not Satisfied)</option>
           </select>
-        </div>git 
+        </div>
 
         <button onClick={printFMBFinalPDF} className="download-pdf-btn">
-          அறிக்கையை PDF ஆக டவுன்லோடு செய்ய (Download PDF)
+            Download PDF
         </button>
       </div>
 
@@ -314,7 +314,7 @@ export default function FMBReportTool() {
                 {signatures.surveyor ? (
                   <img src={signatures.surveyor} alt="Surveyor Sig" className="sig-image" />
                 ) : (
-                  <span className="sig-placeholder-text">கையெழுத்திட கிளிக் செய்க</span>
+                  <span className="sig-placeholder-text">Add Signature</span>
                 )}
               </div>
               <div className="sig-label">
@@ -326,7 +326,7 @@ export default function FMBReportTool() {
                 {signatures.applicant ? (
                   <img src={signatures.applicant} alt="Applicant Sig" className="sig-image" />
                 ) : (
-                  <span className="sig-placeholder-text">கையெழுத்திட கிளிக் செய்க</span>
+                  <span className="sig-placeholder-text">Add Signature</span>
                 )}
               </div>
               <div className="sig-label">
@@ -343,7 +343,7 @@ export default function FMBReportTool() {
                   {signatures.witness1 ? (
                     <img src={signatures.witness1} alt="Witness 1" className="witness-image" />
                   ) : (
-                    <span className="sig-placeholder-text font-weight-normal font-size-11">1. கையெழுத்திட கிளிக் செய்க</span>
+                    <span className="sig-placeholder-text font-weight-normal font-size-11">1. Add Signature</span>
                   )}
                 </div>
               </div>
@@ -352,7 +352,7 @@ export default function FMBReportTool() {
                   {signatures.witness2 ? (
                     <img src={signatures.witness2} alt="Witness 2" className="witness-image" />
                   ) : (
-                    <span className="sig-placeholder-text font-weight-normal font-size-11">2. கையெழுத்திட கிளிக் செய்க</span>
+                    <span className="sig-placeholder-text font-weight-normal font-size-11">2. Add Signature</span>
                   )}
                 </div>
               </div>
@@ -452,7 +452,7 @@ export default function FMBReportTool() {
         .download-pdf-btn {
           width: 100%;
           padding: 10px;
-          background-color: #ed8936;
+          background-color: #2563eb;
           color: white;
           border: none;
           border-radius: 4px;

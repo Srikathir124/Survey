@@ -262,7 +262,7 @@ export default function OffsetIntersectionUI() {
           padding: "10px 30px",
           borderRadius: "10px",
           border: "none",
-          background: "linear-gradient(135deg, #36d1dc, #5b86e5)",
+          background:  "#2563eb",
           color: "white",
           fontWeight: "bold",
           cursor: "pointer"

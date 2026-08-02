@@ -537,28 +537,28 @@ export default function DrawingPanel({
               className={`tool-btn ${activeTool === 'draw' ? 'tool-btn-active' : ''}`}
               onClick={() => { setActiveTool('draw'); setSelectedElement(null); setFirlStartPointIndex(null); }}
             >
-              ✏️ வரைபடம் (Draw)
+              ✏️ Boundary Lines
             </button>
             <button
               type="button"
               className={`tool-btn ${activeTool === 'draw_firl' ? 'tool-btn-active' : ''}`}
               onClick={() => { setActiveTool('draw_firl'); setSelectedElement(null); setFirlStartPointIndex(null); }}
             >
-              📏 FIRL கோடு (FIRL Extension)
+              📏 FIRL Line
             </button>
             <button
               type="button"
               className={`tool-btn ${activeTool === 'add_text' ? 'tool-btn-active' : ''}`}
               onClick={() => { setActiveTool('add_text'); setSelectedElement(null); setFirlStartPointIndex(null); }}
             >
-              🔤 உரை (Add Text)
+              🔤 Add Survey Number
             </button>
             <button
               type="button"
               className={`tool-btn ${activeTool === 'select' ? 'tool-btn-active' : ''}`}
               onClick={() => { setActiveTool('select'); setFirlStartPointIndex(null); }}
             >
-              🔍 தேர்வு / நகர்த்த (Select / Drag)
+              🔍 Edit length / Move text
             </button>
             <button
               type="button"
@@ -567,7 +567,7 @@ export default function DrawingPanel({
               disabled={historyStack.length === 0}
               style={{ opacity: historyStack.length === 0 ? 0.5 : 1 }}
             >
-              ↺ பின்செல்க (Undo)
+              ↺ Undo / Back
             </button>
           </div>
 

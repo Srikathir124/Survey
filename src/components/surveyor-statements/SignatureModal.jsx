@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 
 export default function SignatureModal({ isOpen, title, onClose, onSave }) {
@@ -108,10 +109,46 @@ export default function SignatureModal({ isOpen, title, onClose, onSave }) {
           flexDirection: 'column',
           alignItems: 'center',
           boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+          position: 'relative',
         }}
       >
-        <div style={{ fontWeight: 'bold', color: '#2b6cb0', marginBottom: '10px', fontSize: '14px' }}>
-          {title}
+        {/* Header with title and close X */}
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '10px',
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 'bold',
+              color: '#2b6cb0',
+              fontSize: '14px',
+            }}
+          >
+            {title}
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: '#4a5568',
+              cursor: 'pointer',
+              padding: '0 4px',
+              lineHeight: 1,
+            }}
+            aria-label="Close"
+          >
+            ×
+          </button>
         </div>
 
         <canvas
@@ -140,23 +177,36 @@ export default function SignatureModal({ isOpen, title, onClose, onSave }) {
           <button
             type="button"
             onClick={clearCanvas}
-            style={{ flex: 1, padding: '12px', fontWeight: 'bold', fontSize: '14px', border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: '#f56565', color: 'white' }}
+            style={{
+              flex: 1,
+              padding: '12px',
+              fontWeight: 'bold',
+              fontSize: '14px',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              backgroundColor: '#f56565',
+              color: 'white',
+            }}
           >
-            அழி (Clear)
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{ flex: 1, padding: '12px', fontWeight: 'bold', fontSize: '14px', border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: '#718096', color: 'white' }}
-          >
-            மூடு (Close)
+            Clear
           </button>
           <button
             type="button"
             onClick={handleSave}
-            style={{ flex: 1, padding: '12px', fontWeight: 'bold', fontSize: '14px', border: 'none', borderRadius: '4px', cursor: 'pointer', backgroundColor: '#48bb78', color: 'white' }}
+            style={{
+              flex: 1,
+              padding: '12px',
+              fontWeight: 'bold',
+              fontSize: '14px',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              backgroundColor: '#48bb78',
+              color: 'white',
+            }}
           >
-            சரி (Save)
+            Save
           </button>
         </div>
       </div>
