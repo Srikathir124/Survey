@@ -330,7 +330,7 @@ export default function FMBReportTool() {
                 )}
               </div>
               <div className="sig-label">
-                <br />மனுதாரர் கையொப்பம்
+                மனுதாரர் கையொப்பம்
               </div>
             </div>
           </div>

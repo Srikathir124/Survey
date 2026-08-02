@@ -67,12 +67,24 @@ function Navbar({ setPage, currentPage }) {
           >
             Intersection Calculation
           </button>
-
           <button
             style={getLinkStyle("fline")}
             onClick={() => handleNavigation("fline")}
           >
             F Line Statement
+          </button>
+          <button
+            style={getLinkStyle("conversion-quiz")}
+            onClick={() => handleNavigation("conversion-quiz")}
+          >
+            Conversion Quiz
+          </button>
+          <button
+            // style={getLinkStyle("departmental-exam")}
+            style={{display:'none'}}
+            onClick={() => handleNavigation("departmental-exam")}
+          >
+            Departmental Exam
           </button>
         </div>
 
