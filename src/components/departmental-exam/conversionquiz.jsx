@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-
+import ReactGA from "react-ga4";
 // --- UNIT DEFINITIONS ---
 const LENGTH_UNITS = [
   // Level 1 & 2 Pool
@@ -12,7 +12,6 @@ const LENGTH_UNITS = [
   // Level 4 Expansion}
   { name: 'yard / kejam', symbol: 'yard', base: 0.9144, minLevel: 4 },
 ];
-
 const AREA_UNITS = [
   // Level 1 & 2 Pool
   { name: 'square meter', symbol: 'sq m', base: 1, minLevel: 1 },
@@ -27,7 +26,6 @@ const AREA_UNITS = [
   // Level 4 Expansion
   { name: 'Maa', symbol: 'maa', base: 1337.8, minLevel: 4},
 ];
-
 export default function ConversionQuiz() {
   const [level, setLevel] = useState(1);
   const [questionCount, setQuestionCount] = useState(1);
@@ -36,16 +34,13 @@ export default function ConversionQuiz() {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
-
   const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
   const formatNumber = (num) => {
     if (Math.abs(num) < 0.01 || Math.abs(num) >= 100000) {
       return parseFloat(num.toPrecision(4));
     }
     return Math.round(num * 10000) / 10000;
   };
-
   const shuffleArray = (array) => {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -54,42 +49,32 @@ export default function ConversionQuiz() {
     }
     return arr;
   };
-
   // --- QUESTION & OPTIONS GENERATION ENGINE ---
   const generateQuestion = useCallback(() => {
     const isLength = Math.random() < 0.5;
     const rawPool = isLength ? LENGTH_UNITS : AREA_UNITS;
-
     const availablePool = rawPool.filter((u) => u.minLevel <= level);
-
     const fromUnit = getRandom(availablePool);
     const toUnit = getRandom(availablePool.filter((u) => u.name !== fromUnit.name));
-
     let valueToConvert;
-    if (level === 1) {
+    // if (level === 1) {
       valueToConvert = Math.floor(Math.random() * 9) + 1;
-    } else {
-      valueToConvert = Math.floor(Math.random() * 90) + 10;
-    }
-
+    // } else {
+      // valueToConvert = Math.floor(Math.random() * 90) + 10;
+    // }
     const exactAnswer = (valueToConvert * fromUnit.base) / toUnit.base;
     const formattedCorrect = formatNumber(exactAnswer);
-
     // Calculate 1-unit reference equivalence
     const singleUnitValue = formatNumber(fromUnit.base / toUnit.base);
-
     const wrongOptionsSet = new Set();
     const multipliers = [0.5, 1.5, 2.0, 10, 0.1, 0.25, 1.2, 0.8];
-
     while (wrongOptionsSet.size < 3) {
       const mult = getRandom(multipliers);
       let wrongVal = formatNumber(exactAnswer * mult);
-
       if (wrongVal !== formattedCorrect && wrongVal > 0 && !wrongOptionsSet.has(wrongVal)) {
         wrongOptionsSet.add(wrongVal);
       }
     }
-
     const optionsList = shuffleArray([
       { text: `${formattedCorrect} ${toUnit.symbol}`, isCorrect: true, val: formattedCorrect },
       ...Array.from(wrongOptionsSet).map((val) => ({
@@ -98,7 +83,6 @@ export default function ConversionQuiz() {
         val
       }))
     ]);
-
     setCurrentQuestion({
       category: isLength ? 'Length' : 'Area',
       val: valueToConvert,
@@ -108,23 +92,17 @@ export default function ConversionQuiz() {
       unitReference: singleUnitValue,
       options: optionsList
     });
-
     setSelectedOption(null);
     setFeedback(null);
   }, [level]);
-
   useEffect(() => {
     generateQuestion();
   }, [generateQuestion]);
-
   // --- HANDLE OPTION SELECTION ---
   const handleOptionSelect = (option) => {
     if (feedback !== null) return;
-
     setSelectedOption(option);
-
     const refMsg = `hint: 1 ${currentQuestion.from.name} = ${currentQuestion.unitReference} ${currentQuestion.to.name}`;
-
     if (option.isCorrect) {
       setSetScore((prev) => prev + 1);
       setFeedback({
@@ -140,36 +118,40 @@ export default function ConversionQuiz() {
       });
     }
   };
-
   // --- HANDLE NEXT QUESTION / SET RESET ---
   const handleNextQuestion = () => {
     if (questionCount >= 10) {
+      ReactGA.event({
+      category: "Quiz",
+      action: "quiz_completed",
+      label: `Level ${level}`,
+      value: setScore, // Pass score as event value
+      score: setScore, // Custom parameter
+      level: level,
+      total_questions: 10
+    });
       setCompletedSetScore(setScore);
     } else {
       setQuestionCount((prev) => prev + 1);
       generateQuestion();
     }
   };
-
   const handleStartNextSet = () => {
     let nextLevel = 1;
     if (completedSetScore > 9) {
-      nextLevel = 4;
-    } else if (completedSetScore > 8) {
-      nextLevel = 3;
-    } else if (completedSetScore > 5) {
       nextLevel = 2;
+    } else if (completedSetScore > 99) {
+      nextLevel = 3;
+    } else if (completedSetScore > 99) {
+      nextLevel = 4;
     }
-
     setLevel(nextLevel);
     setCompletedSetScore(null);
     setSetScore(0);
     setQuestionCount(1);
     generateQuestion();
   };
-
   const optionPrefixes = ['A', 'B', 'C', 'D'];
-
   return (
     <div style={styles.card}>
       {/* Set Completion Summary Screen */}
@@ -190,19 +172,16 @@ export default function ConversionQuiz() {
             <span style={styles.categoryBadge}>{currentQuestion?.category}</span>
             <span style={styles.counterText}>Question {questionCount} of 10</span>
           </div>
-
           {/* Question Display */}
           {currentQuestion && (
             <div style={styles.questionContainer}>
               <p style={styles.questionText}>
                 Convert <span style={styles.highlight}>{currentQuestion.val}</span> {currentQuestion.from.name} ({currentQuestion.from.symbol}) into <strong>{currentQuestion.to.name}</strong>
               </p>
-
               {/* 4 Multiple Choice Options with A, B, C, D */}
               <div style={styles.optionsGrid}>
                 {currentQuestion.options.map((option, index) => {
                   let btnStyle = { ...styles.optionBtn };
-
                   if (feedback) {
                     if (option.isCorrect) {
                       btnStyle = { ...btnStyle, ...styles.correctOption };
@@ -212,7 +191,6 @@ export default function ConversionQuiz() {
                       btnStyle = { ...btnStyle, opacity: 0.5 };
                     }
                   }
-
                   return (
                     <button
                       key={index}
@@ -226,7 +204,6 @@ export default function ConversionQuiz() {
                   );
                 })}
               </div>
-
               {/* Next Question Button */}
               {feedback !== null && (
                 <button type="button" onClick={handleNextQuestion} style={styles.nextBtn}>
@@ -235,7 +212,6 @@ export default function ConversionQuiz() {
               )}
             </div>
           )}
-
           {/* Feedback Banner displaying 1-Unit conversion reference */}
           {feedback && (
             <div style={feedback.status === 'correct' ? styles.correctAlert : styles.wrongAlert}>
@@ -248,7 +224,6 @@ export default function ConversionQuiz() {
     </div>
   );
 }
-
 // Inline Styles
 const styles = {
   card: {
