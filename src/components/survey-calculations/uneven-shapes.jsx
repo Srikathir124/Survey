@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import AreaConversion from "./areaconversion";
+import { trackEvent } from "../../utils/analytics.js";
+
 function UnevenShapes() {
   // =========================================================
   // QUADRILATERAL ABCD
@@ -271,7 +273,10 @@ function UnevenShapes() {
       totalArea: totalArea.toFixed(3),
       isApproximate: false,
     });
-    setQuadErrorMsg("");
+    setQuadErrorMsg("");    
+    trackEvent("calculator_used", {
+            calculator_name: "Quadilateral Area"
+    });
   };
   // =========================================================
   // CALCULATE TRIANGLE
@@ -314,6 +319,10 @@ function UnevenShapes() {
       totalArea: areaABC.toFixed(3),
     });
     setTriErrorMsg("");
+    
+    trackEvent("calculator_used", {
+            calculator_name: "Triangle Area"
+    });
   };
   // =========================================================
   // CALCULATE PENTAGON
@@ -447,6 +456,9 @@ function UnevenShapes() {
       isApproximate: false,
     });
     setPentErrorMsg("");
+    trackEvent("calculator_used", {
+            calculator_name: "Pentagon Area"
+    });
   };
   // =========================================================
   // QUADRILATERAL INPUT POSITIONS

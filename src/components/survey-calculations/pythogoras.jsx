@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ReactGA from "react-ga4";
+import { trackEvent } from "../../utils/analytics.js";
 
 function Pythagoras() {
   const A = { x: 60, y: 260 };
@@ -128,11 +128,8 @@ function Pythagoras() {
     }
 
     setResult(res);
-
-    
-    ReactGA.event({
-      category: "Calculate",
-      action: "Calculate Pythogoras Button",
+    trackEvent("calculator_used", {
+        calculator_name: "Pythagoras Calculator"
     });
 
   };

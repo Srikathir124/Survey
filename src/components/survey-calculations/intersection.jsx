@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import ReactGA from "react-ga4";
+import { trackEvent } from "../../utils/analytics.js";
 
 export default function OffsetIntersectionUI() {
   const [C1, setC1] = useState("");
@@ -74,10 +74,8 @@ export default function OffsetIntersectionUI() {
     });
 
     setError("");
-    
-    ReactGA.event({
-      category: "Calculate",
-      action: "Calculate Intersection Button",
+    trackEvent("calculator_used", {
+        calculator_name: "Intersection Calculator"
     });
 
   };

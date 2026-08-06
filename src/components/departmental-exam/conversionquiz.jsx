@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import ReactGA from "react-ga4";
+import { trackEvent } from "../../utils/analytics.js";
 // --- UNIT DEFINITIONS ---
 const LENGTH_UNITS = [
   // Level 1 & 2 Pool
@@ -121,15 +121,11 @@ export default function ConversionQuiz() {
   // --- HANDLE NEXT QUESTION / SET RESET ---
   const handleNextQuestion = () => {
     if (questionCount >= 10) {
-      ReactGA.event({
-      category: "Quiz",
-      action: "quiz_completed",
-      label: `Level ${level}`,
-      value: setScore, // Pass score as event value
-      score: setScore, // Custom parameter
-      level: level,
-      total_questions: 10
-    });
+      trackEvent("quiz_completed", {
+        level,
+        score: setScore,
+        total_questions: 10,
+      });
       setCompletedSetScore(setScore);
     } else {
       setQuestionCount((prev) => prev + 1);

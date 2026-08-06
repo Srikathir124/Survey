@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import SignatureModal from './SignatureModal';
 import DrawingPanel from './DrawingPanel';
+import { trackEvent } from "../../utils/analytics.js";
+
 
 export default function FMBReportTool() {
   // --- Form & Page States ---
@@ -41,6 +43,9 @@ export default function FMBReportTool() {
     document.title = "F Line Statement " + (survey ? survey.replace('/', '|') : ' (' + date + ')');
     window.print();
     document.title = originalTitle;
+    trackEvent("pdf_generated", {
+        document_name: "F Line "+applicantStatus
+    });
   };
 
   // --- Signature Modal Handlers ---
@@ -389,7 +394,7 @@ export default function FMBReportTool() {
               </div>
             </div>
             {renderSavedSVGReport()}
-            <div>அளவுக்கு வரையப்பட்டதல்ல, </div>
+            {savedFmbData?.outerPoints?.length > 0 && (<div style={{fontSize: "x-small"}}>அளவுக்கு வரையப்பட்டதல்ல, </div>)}
           </div>
       </div>
 
@@ -647,7 +652,7 @@ export default function FMBReportTool() {
             padding: 0 !important;
           }
           .sig-display-pad, .witness-pad { border: none !important; background: transparent !important; }
-          .sig-placeholder-text, drawing-placeholder-box { display: none !important; }
+          .sig-placeholder-text, .drawing-placeholder-box { display: none !important; }
         }
       `}</style>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ReactGA from "react-ga4";
+import { trackPageView } from "../utils/analytics.js";
 
 function Navbar({ setPage, currentPage }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -7,10 +7,7 @@ function Navbar({ setPage, currentPage }) {
   const handleNavigation = (page) => {
     setPage(page);
     setIsOpen(false);
-    ReactGA.event({
-      category: "Navigation",
-      action: page + "Navigation",
-    });
+    trackPageView(page);
   };
 
   const getLinkStyle = (page) => ({
