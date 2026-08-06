@@ -166,7 +166,7 @@ export default function FMBReportTool() {
         height={PANEL_HEIGHT}
         viewBox={`0 0 ${PANEL_WIDTH} ${PANEL_HEIGHT}`}
         preserveAspectRatio="xMidYMid meet"
-        className="border border-slate-200 rounded shadow-inner bg-white block mx-auto relative cursor-pointer"
+        className="border border-slate-200 rounded shadow-inner bg-white block mx-auto cursor-pointer"
         onClick={() => setIsDrawingModalOpen(true)}
       >
         <g>
@@ -183,20 +183,29 @@ export default function FMBReportTool() {
     <div className="fmb-root-container">
       {/* Top Controls Box */}
       <div className="no-print controls-card">
-        <div className="status-select-wrapper">
-          <label className="status-label">
-            மனுதாரரின் நிலை (Applicant Status):
+          <div className="status-radio-group">
+          <label className="status-radio">
+            <input
+              type="radio"
+              name="applicantStatus"
+              value="satisfied"
+              checked={applicantStatus === "satisfied"}
+              onChange={(e) => setApplicantStatus(e.target.value)}
+            />
+            <span>மனுதாரர் திருப்தி அடைந்தார் (Satisfied)</span>
           </label>
-          <select
-            className="status-select"
-            value={applicantStatus}
-            onChange={(e) => setApplicantStatus(e.target.value)}
-          >
-            <option value="satisfied">1. மனுதாரர்  திருப்தி அடைந்தார் (Satisfied)</option>
-            <option value="not_satisfied">2. மனுதாரர் திருப்தி அடையவில்லை (Not Satisfied)</option>
-          </select>
-        </div>
 
+          <label className="status-radio">
+            <input
+              type="radio"
+              name="applicantStatus"
+              value="not_satisfied"
+              checked={applicantStatus === "not_satisfied"}
+              onChange={(e) => setApplicantStatus(e.target.value)}
+            />
+            <span>மனுதாரர் திருப்தி அடையவில்லை (Not Satisfied)</span>
+          </label>
+        </div><br/>
         <button onClick={printFMBFinalPDF} className="download-pdf-btn">
             Download PDF
         </button>
@@ -300,11 +309,11 @@ export default function FMBReportTool() {
               <option value="நிலஅளவர்">நிலஅளவர்</option>
               <option value="சார் ஆய்வாளர்">சார் ஆய்வாளர்</option>
             </select>{' '}
-            <span>
+
               {applicantStatus === 'satisfied'
                 ? 'புலத்தின் எல்லைகளை அளந்து காண்பித்தார். அப்போது நான் உடன் இருந்து எனது புல எல்லைகளை தெரிந்து கொண்டேன்.'
                 : 'புலத்தின் எல்லைகளை அளந்து காண்பித்தார். எனக்கு அளவையில் திருப்தி இல்லை என்பதை தெரிவித்துக் கொள்கிறேன்.'}
-            </span>
+
           </div>
 
           <div className="signature-grid">
@@ -360,8 +369,15 @@ export default function FMBReportTool() {
           </div>
         </div>
 
-        {applicantStatus === 'satisfied' && (
-          <div className="fmb-drawing-wrapper">
+        <div  className="fmb-drawing-wrapper"
+            style={{
+                visibility:
+                    applicantStatus === "satisfied" ? "visible" : "hidden",
+                height:
+                    applicantStatus === "satisfied" ? "auto" : "0",
+                overflow: "hidden",
+            }}
+        >
             <div className="grid-container">
               <div>
                 <div>மாவட்டம்: <span className="editable-span">{district}</span></div>
@@ -375,8 +391,6 @@ export default function FMBReportTool() {
             {renderSavedSVGReport()}
             <div>அளவுக்கு வரையப்பட்டதல்ல, </div>
           </div>
-          
-        )}
       </div>
 
       {/* Drawing Popup Modal */}
@@ -399,9 +413,9 @@ export default function FMBReportTool() {
 
       <style>{`
         .fmb-root-container {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background-color: #f0f4f8;
-          align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            align-items: center;
         }
         .controls-card {
           width: 100%;
@@ -414,40 +428,28 @@ export default function FMBReportTool() {
           box-sizing: border-box;
           margin-bottom: 15px;
         }
-        .status-select-wrapper {
-          background-color: #ebf8ff;
-          padding: 10px;
-          border: 1px solid #bee3f8;
-          border-radius: 6px;
-          margin-bottom: 10px;
+        .status-radio-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-top: 6px;
         }
-        .status-label {
-          color: #2b6cb0;
-          font-size: 13px;
-          display: block;
-          font-weight: bold;
-          margin-bottom: 4px;
-        }
-        .status-select {
-          width: 100%;
-          padding: 8px;
-          border: 2px solid #3182ce;
-          border-radius: 4px;
-          font-size: 13px;
-          font-weight: bold;
-          box-sizing: border-box;
-        }
-        .open-drawing-btn {
-          width: 100%;
-          padding: 10px;
-          background-color: #3182ce;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          font-weight: bold;
+
+        .status-radio {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           cursor: pointer;
           font-size: 13px;
-          margin-bottom: 8px;
+          font-weight: 600;
+          color: #000;
+        }
+
+        .status-radio input[type="radio"] {
+          width: 16px;
+          height: 16px;
+          accent-color: #2563eb;
+          cursor: pointer;
         }
         .download-pdf-btn {
           width: 100%;
@@ -518,7 +520,6 @@ export default function FMBReportTool() {
           padding: 0px 2px;
           font-size: 13px;
           cursor: pointer;
-          display: inline-block;
           white-space: nowrap;
           width: auto;
         }
@@ -646,7 +647,7 @@ export default function FMBReportTool() {
             padding: 0 !important;
           }
           .sig-display-pad, .witness-pad { border: none !important; background: transparent !important; }
-          .sig-placeholder-text { display: none !important; }
+          .sig-placeholder-text, drawing-placeholder-box { display: none !important; }
         }
       `}</style>
     </div>
