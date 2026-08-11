@@ -2,7 +2,7 @@
   "name": "survey-app",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://srikathir124.github.io/Survey",
+  "homepage": "https://srikathir124.github.io/Survey/",
   "dependencies": {
     "@capacitor/android": "^8.4.2",
     "@capacitor/cli": "^7.6.8",

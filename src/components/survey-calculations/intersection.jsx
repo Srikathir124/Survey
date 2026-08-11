@@ -110,8 +110,14 @@ export default function OffsetIntersectionUI() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <svg width="700" height="700">
+      <di style={{  width: "100%",  display: "flex",  flexDirection: "column",  alignItems: "center",  }}  >      
+      <svg  viewBox="0 0 700 700"  width="100%"
+        style={{
+          maxWidth: "700px",
+          height: "auto",
+          display: "block",
+        }}
+      >
 
         {/* Axis */}
         <line x1="300" y1="50" x2="300" y2="650"
@@ -267,6 +273,6 @@ export default function OffsetIntersectionUI() {
         }}>
         Calculate
       </button>
-    </div>
+    </di>
   );
 }

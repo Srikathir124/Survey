@@ -526,7 +526,7 @@ export default function DrawingPanel({
     <div className="drawing-modal-overlay">
       <div className="drawing-modal-container">
         <div className="drawing-modal-header">
-          <h3 className="drawing-modal-title">புல வரைபடம் வரைதல் (Draw Field Map)</h3>
+          <h3 className="drawing-modal-title">Field Sketch</h3>
           <button onClick={onClose} className="modal-close-btn">&times;</button>
         </div>
 
@@ -622,9 +622,6 @@ export default function DrawingPanel({
             🗑️ Clear
           </button>
           <div className="footer-right-actions">
-            <button type="button" onClick={onClose} className="modal-footer-btn cancel-btn">
-              Cancel
-            </button>
             <button type="button" onClick={handleSaveDrawing} className="modal-footer-btn save-btn">
               💾 Save
             </button>
@@ -656,14 +653,13 @@ export default function DrawingPanel({
         }
         .drawing-modal-header {
           padding: 12px 16px;
-          background-color: #2b6cb0;
-          color: white;
+          color: #2b6cb0;
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
         .drawing-modal-title { margin: 0; font-size: 14px; font-weight: bold; }
-        .modal-close-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0 5px; }
+        .modal-close-btn { color: #dc2626; background:transparent; border: none; font-size: 32px; cursor: pointer;  font-weight:bold; padding: 0 5px; }
         .drawing-modal-body { padding: 12px; overflow-y: auto; }
         .drawing-toolbar { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
         .tool-btn {
@@ -747,7 +743,6 @@ export default function DrawingPanel({
           touch-action: manipulation;
         }
         .clear-btn { background-color: #e53e3e; color: white; }
-        .cancel-btn { background-color: #e2e8f0; color: #4a5568; }
         .save-btn { background-color: #ed8936; color: white; }
 
         @media (max-width: 480px) {

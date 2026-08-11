@@ -140,10 +140,10 @@ export default function SignatureModal({ isOpen, title, onClose, onSave }) {
               border: 'none',
               fontSize: '20px',
               fontWeight: 'bold',
-              color: '#4a5568',
-              cursor: 'pointer',
+              color: '#dc2626',
               padding: '0 4px',
-              lineHeight: 1,
+              fontSize: '28px',
+              fontWeight: 'bold'
             }}
             aria-label="Close"
           >

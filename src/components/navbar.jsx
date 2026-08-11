@@ -71,6 +71,12 @@ function Navbar({ setPage, currentPage }) {
             F Line Statement
           </button>
           <button
+            style={getLinkStyle("a-reg-correction")}
+            onClick={() => handleNavigation("a-reg-correction")}
+          >
+            A-Reg Correction Statement
+          </button>
+          <button
             style={getLinkStyle("conversion-quiz")}
             onClick={() => handleNavigation("conversion-quiz")}
           >
@@ -83,6 +89,14 @@ function Navbar({ setPage, currentPage }) {
           >
             Departmental Exam
           </button>
+
+          {/* Calculator - Make result to 2 digit. Add Buttons '(',')', '<', '>'*/}
+          {/* Area Correction Statement */}
+          {/* Area Mismatch Statement */}
+          {/* Q & A */}
+          {/* Dairy */}
+          {/* Licensed Surveyor near you */}
+          {/* Games */}
         </div>
 
         <div style={styles.footerItems}>

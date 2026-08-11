@@ -8,6 +8,7 @@ import Nos from "./components/survey-calculations/nos";
 import OffsetIntersectionUI from "./components/survey-calculations/intersection";
 import NotesPanel from "./components/common/notes";
 import FLineReport from "./components/surveyor-statements/fline";
+import ARegCorrection from "./components/surveyor-statements/ARegCorrection";
 import DepartmentalExam from "./components/departmental-exam/departmentalexam";
 import ConversionQuiz from "./components/departmental-exam/conversionquiz";
 import Help from "./components/help";
@@ -27,6 +28,8 @@ function App() {
         return <UnevenShapes/>
       case "fline":
         return <FLineReport/>
+      case "a-reg-correction":
+        return <ARegCorrection/>
       case "departmental-exam":
         return <DepartmentalExam setPage={setPage} />;
       case "conversion-quiz":
