@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/navbar";
-import LengthConversion from "./components//common/lengthconversion";
+import LengthConversion from "./components/common/lengthconversion";
 import UnevenShapes from "./components/survey-calculations/uneven-shapes";
 import Pythagoras from "./components/survey-calculations/pythogoras";
 import Nos from "./components/survey-calculations/nos";
@@ -14,41 +15,26 @@ import ConversionQuiz from "./components/departmental-exam/conversionquiz";
 import Help from "./components/help";
 
 function App() {
-  const [page, setPage] = useState("unevenshapes");
-
-  const renderPage = () => {
-    switch (page) {
-      case "nos":
-        return <Nos />;
-      case "pythagoras":
-        return <Pythagoras />;
-      case "intersection":
-        return <OffsetIntersectionUI/>
-      case "unevenshapes":
-        return <UnevenShapes/>
-      case "fline":
-        return <FLineReport/>
-      case "a-reg-correction":
-        return <ARegCorrection/>
-      case "departmental-exam":
-        return <DepartmentalExam setPage={setPage} />;
-      case "conversion-quiz":
-        return <ConversionQuiz/>
-      case "help":
-        return <Help/>
-      default:
-        return <UnevenShapes/>;
-    }
-  };
-
   return (
     <div style={styles.container}>
-      <Navbar setPage={setPage} currentPage={page} />
-      <div style={{ marginTop: "60px", padding: "20px" }}>
-        {renderPage()}
+      <Navbar />
+      <div style={{ marginTop: "60px", padding: "20px", flex: 1 }}>
+        <Routes>
+          <Route path="/" element={<Navigate replace to="/unevenshapes" />} />
+          <Route path="/unevenshapes" element={<UnevenShapes />} />
+          <Route path="/pythagoras" element={<Pythagoras />} />
+          <Route path="/nos" element={<Nos />} />
+          <Route path="/intersection" element={<OffsetIntersectionUI />} />
+          <Route path="/fline" element={<FLineReport />} />
+          <Route path="/a-reg-correction" element={<ARegCorrection />} />
+          <Route path="/conversion-quiz" element={<ConversionQuiz />} />
+          <Route path="/departmental-exam" element={<DepartmentalExam />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="*" element={<Navigate replace to="/unevenshapes" />} />
+        </Routes>
       </div>
-      <LengthConversion/>
-      <NotesPanel/>
+      <LengthConversion />
+      <NotesPanel />
     </div>
   );
 }
@@ -56,10 +42,6 @@ function App() {
 const styles = {
   container: {
     display: "flex",
-  },
-  content: {
-    flex: 1,
-    padding: "20px",
   },
 };
 

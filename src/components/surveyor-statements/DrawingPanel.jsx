@@ -1,526 +1,280 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-export default function DrawingPanel({
-  isOpen,
-  onClose,
-  onSave,
-  initialData,
-  width = 550,
-  height = 320,
-}) {
+export default function DrawingPanel({ isOpen, onClose, onSave, initialData, width = 550, height = 320 }) {
   const svgRef = useRef(null);
   const PANEL_WIDTH = width;
   const PANEL_HEIGHT = height;
 
-  // Active Drawing Tool: 'draw' | 'draw_firl' | 'add_text' | 'select'
-  const [activeTool, setActiveTool] = useState('draw');
-
-  // Active/Last Selected Point Index
+  const [activeTool, setActiveTool] = useState('draw'); // 'draw' | 'draw_firl' | 'add_text' | 'select'
   const [activePointIndex, setActivePointIndex] = useState(null);
-
-  // Selected Start Point for FIRL extension
   const [firlStartPointIndex, setFirlStartPointIndex] = useState(null);
-
-  // Dragging state for custom labels
   const [draggingLabelIndex, setDraggingLabelIndex] = useState(null);
-
-  // Selected Element State: { type: 'point'|'line'|'firl_extension'|'label', index: number }
-  const [selectedElement, setSelectedElement] = useState(null);
-
-  // Core Drawing State
-  const [fmbData, setFmbData] = useState({
-    outerPoints: [],
-    outerLines: [],        // Array of { p1Index, p2Index, dist }
-    firlExtensions: [],    // Array of { p1Index, x2, y2 } (Direction vector only, no point or dist)
-    customLabels: [],      // Array of { id, text, x, y }
-  });
-
-  // Action History Stack for Undo
+  const [selectedElement, setSelectedElement] = useState(null); // { type, index }
   const [historyStack, setHistoryStack] = useState([]);
+  
+  // Inline Form States
+  const [pendingConnection, setPendingConnection] = useState(null); // { p1Index, p2Index, isNewPoint, pointData }
+  const [distInputValue, setDistInputValue] = useState('');
 
+  const [pendingTextInsert, setPendingTextInsert] = useState(null); // { x, y }
+  const [textInputValue, setTextInputValue] = useState('');
+
+  const [editingElement, setEditingElement] = useState(null); // { type, index, initialValue }
+  const [editInputValue, setEditInputValue] = useState('');
+
+  const [fmbData, setFmbData] = useState({ outerPoints: [], outerLines: [], firlExtensions: [], customLabels: [] });
   const stateRef = useRef(fmbData);
-  useEffect(() => {
-    stateRef.current = fmbData;
-  }, [fmbData]);
+  useEffect(() => { stateRef.current = fmbData; }, [fmbData]);
 
-  // Load initial data when modal opens
   useEffect(() => {
     if (isOpen && initialData) {
       setFmbData(initialData);
       setHistoryStack([]);
       setFirlStartPointIndex(null);
-      if (initialData.outerPoints && initialData.outerPoints.length > 0) {
-        setActivePointIndex(initialData.outerPoints.length - 1);
-      }
+      setPendingConnection(null);
+      setPendingTextInsert(null);
+      setEditingElement(null);
+      setActivePointIndex(initialData.outerPoints?.length ? initialData.outerPoints.length - 1 : null);
     }
   }, [isOpen, initialData]);
 
-  // Record state snapshot before mutation for Undo
-  const pushToHistory = () => {
-    setHistoryStack((prev) => [...prev, JSON.parse(JSON.stringify(fmbData))]);
+  const pushToHistory = () => setHistoryStack((prev) => [...prev, JSON.parse(JSON.stringify(fmbData))]);
+
+  // --- Confirm Line Distance Input ---
+  const handleConfirmPendingConnection = (e) => {
+    if (e) e.preventDefault();
+    if (!pendingConnection) return;
+
+    pushToHistory();
+    const st = stateRef.current;
+    const finalDist = distInputValue.trim() || '0.0';
+
+    if (pendingConnection.isNewPoint) {
+      const newPointIndex = st.outerPoints.length;
+      const updatedLines = [...st.outerLines];
+      if (pendingConnection.p1Index !== null && st.outerPoints[pendingConnection.p1Index]) {
+        updatedLines.push({ p1Index: pendingConnection.p1Index, p2Index: newPointIndex, dist: finalDist });
+      }
+      setFmbData((prev) => ({
+        ...prev,
+        outerPoints: [...prev.outerPoints, pendingConnection.pointData],
+        outerLines: updatedLines,
+      }));
+      setActivePointIndex(newPointIndex);
+    } else {
+      setFmbData((prev) => ({
+        ...prev,
+        outerLines: [...prev.outerLines, { p1Index: pendingConnection.p1Index, p2Index: pendingConnection.p2Index, dist: finalDist }],
+      }));
+      setActivePointIndex(pendingConnection.p2Index);
+    }
+    setPendingConnection(null);
+    setDistInputValue('');
   };
 
-  // --- Undo Last Action ---
+  // --- Confirm Survey Number Text Input ---
+  const handleConfirmTextInsert = (e) => {
+    if (e) e.preventDefault();
+    if (!pendingTextInsert) return;
+
+    const val = textInputValue.trim();
+    if (val) {
+      pushToHistory();
+      setFmbData((prev) => ({
+        ...prev,
+        customLabels: [...prev.customLabels, { id: Date.now(), text: val, x: pendingTextInsert.x, y: pendingTextInsert.y }]
+      }));
+    }
+    setPendingTextInsert(null);
+    setTextInputValue('');
+  };
+
+  // --- Confirm Edit Line Distance / Survey Text ---
+  const handleConfirmEdit = (e) => {
+    if (e) e.preventDefault();
+    if (!editingElement) return;
+
+    const { type, index } = editingElement;
+    const val = editInputValue.trim();
+
+    if (val !== '') {
+      pushToHistory();
+      setFmbData((prev) => {
+        if (type === 'label') {
+          const updated = [...prev.customLabels];
+          if (updated[index]) updated[index] = { ...updated[index], text: val };
+          return { ...prev, customLabels: updated };
+        } else if (type === 'line') {
+          const updated = [...prev.outerLines];
+          if (updated[index]) updated[index] = { ...updated[index], dist: val };
+          return { ...prev, outerLines: updated };
+        }
+        return prev;
+      });
+    }
+
+    setEditingElement(null);
+    setEditInputValue('');
+  };
+
   const handleUndo = () => {
-    if (historyStack.length === 0) return;
-    const previousState = historyStack[historyStack.length - 1];
-    setFmbData(previousState);
-    setHistoryStack((prev) => prev.slice(0, -1));
+    if (!historyStack.length) return;
+    const prev = historyStack[historyStack.length - 1];
+    setFmbData(prev);
+    setHistoryStack((p) => p.slice(0, -1));
     setSelectedElement(null);
     setFirlStartPointIndex(null);
-    if (previousState.outerPoints && previousState.outerPoints.length > 0) {
-      setActivePointIndex(previousState.outerPoints.length - 1);
-    } else {
-      setActivePointIndex(null);
-    }
+    setPendingConnection(null);
+    setPendingTextInsert(null);
+    setEditingElement(null);
+    setActivePointIndex(prev.outerPoints?.length ? prev.outerPoints.length - 1 : null);
   };
 
-  // --- Reset Drawing ---
   const handleResetDrawing = () => {
     if (window.confirm("வரைபடத்தை முழுமையாக அழிக்க விரும்புகிறீர்களா? (Clear drawing?)")) {
       pushToHistory();
-      setFmbData({
-        outerPoints: [],
-        outerLines: [],
-        firlExtensions: [],
-        customLabels: [],
-      });
+      setFmbData({ outerPoints: [], outerLines: [], firlExtensions: [], customLabels: [] });
       setSelectedElement(null);
       setActivePointIndex(null);
       setFirlStartPointIndex(null);
+      setPendingConnection(null);
+      setPendingTextInsert(null);
+      setEditingElement(null);
     }
   };
 
-  // --- Save Drawing Handler ---
-  const handleSaveDrawing = () => {
-    onSave(fmbData);
-    onClose();
-  };
-
-  // --- Helper to Extract Touch/Mouse Coordinates ---
   const getCanvasCoordinates = (e) => {
     if (!svgRef.current) return { clickX: 0, clickY: 0 };
     const rect = svgRef.current.getBoundingClientRect();
-    
-    const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : e.clientY;
-
-    const scaleX = PANEL_WIDTH / rect.width;
-    const scaleY = PANEL_HEIGHT / rect.height;
-
+    const clientX = e.touches?.length ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches?.length ? e.touches[0].clientY : e.clientY;
     return {
-      clickX: (clientX - rect.left) * scaleX,
-      clickY: (clientY - rect.top) * scaleY,
+      clickX: (clientX - rect.left) * (PANEL_WIDTH / rect.width),
+      clickY: (clientY - rect.top) * (PANEL_HEIGHT / rect.height),
     };
   };
 
-  // --- Unified Tap/Click Handler for Empty Canvas Areas ---
   const handleCanvasInteraction = (e) => {
+    if (pendingConnection || pendingTextInsert || editingElement) return;
     const { clickX, clickY } = getCanvasCoordinates(e);
     const st = stateRef.current;
 
-    // 1. ADD TEXT MODE
     if (activeTool === 'add_text') {
-      let labelText = prompt("சேர்க்க வேண்டிய உரையை தட்டச்சு செய்யவும் (Enter text):");
-      if (labelText) {
-        pushToHistory();
-        setFmbData((prev) => ({
-          ...prev,
-          customLabels: [
-            ...prev.customLabels,
-            { id: Date.now(), text: labelText, x: clickX, y: clickY }
-          ]
-        }));
-      }
-      return;
-    }
-
-    // 2. FIRL MODE: Directs open extension line from selected boundary point into space
-    if (activeTool === 'draw_firl') {
-      if (firlStartPointIndex === null) {
-        alert("FIRL கோடு துவங்க முதலில் ஒரு புள்ளியைத் தேர்ந்தெடுக்கவும்! (Please select a boundary point first)");
-        return;
-      }
-
+      setPendingTextInsert({ x: clickX, y: clickY });
+      setTextInputValue('');
+    } else if (activeTool === 'draw_firl') {
+      if (firlStartPointIndex === null) return alert("FIRL கோடு துவங்க முதலில் ஒரு புள்ளியைத் தேர்ந்தெடுக்கவும்!");
       pushToHistory();
-      setFmbData((prev) => ({
-        ...prev,
-        firlExtensions: [
-          ...(prev.firlExtensions || []),
-          { p1Index: firlStartPointIndex, x2: clickX, y2: clickY }
-        ]
-      }));
+      setFmbData((prev) => ({ ...prev, firlExtensions: [...(prev.firlExtensions || []), { p1Index: firlStartPointIndex, x2: clickX, y2: clickY }] }));
       setFirlStartPointIndex(null);
-      return;
-    }
-
-    // 3. STANDARD DRAW POINT MODE
-    if (activeTool === 'draw') {
+    } else if (activeTool === 'draw') {
       const newPoint = { x: clickX, y: clickY };
-      const newPointIndex = st.outerPoints.length;
-
-      // FIRST POINT: Place directly without distance prompt
-      if (st.outerPoints.length === 0) {
+      if (!st.outerPoints.length) {
         pushToHistory();
-        setFmbData((prev) => ({
-          ...prev,
-          outerPoints: [newPoint],
-        }));
+        setFmbData((prev) => ({ ...prev, outerPoints: [newPoint] }));
         setActivePointIndex(0);
-        return;
+      } else {
+        setPendingConnection({ p1Index: activePointIndex, p2Index: null, isNewPoint: true, pointData: newPoint });
+        setDistInputValue('');
       }
-
-      // SUBSEQUENT POINTS: Prompt for measurement distance
-      let measInput = prompt("புள்ளிக்கான தூரம் / அளவை உள்ளிடவும் (Enter measurement text):", "0.0");
-      if (measInput === null) return;
-
-      pushToHistory();
-
-      let updatedLines = [...st.outerLines];
-
-      if (activePointIndex !== null && st.outerPoints[activePointIndex]) {
-        updatedLines.push({
-          p1Index: activePointIndex,
-          p2Index: newPointIndex,
-          dist: measInput || "0.0",
-        });
-      }
-
-      setFmbData((prev) => ({
-        ...prev,
-        outerPoints: [...prev.outerPoints, newPoint],
-        outerLines: updatedLines,
-      }));
-
-      setActivePointIndex(newPointIndex);
     }
   };
 
-  // --- Point Click Handler ---
   const handlePointClick = (index, e) => {
     e.stopPropagation();
-
-    // In FIRL mode, select the anchor point to extend from
-    if (activeTool === 'draw_firl') {
-      setFirlStartPointIndex(index);
-      return;
-    }
+    if (pendingConnection || pendingTextInsert || editingElement) return;
+    if (activeTool === 'draw_firl') return setFirlStartPointIndex(index);
 
     if (activeTool === 'draw') {
-      setActivePointIndex(index);
+      const st = stateRef.current;
+      if (activePointIndex !== null && activePointIndex !== index) {
+        const exists = st.outerLines.some((l) => (l.p1Index === activePointIndex && l.p2Index === index) || (l.p1Index === index && l.p2Index === activePointIndex));
+        if (exists) return setActivePointIndex(index);
+        setPendingConnection({ p1Index: activePointIndex, p2Index: index, isNewPoint: false });
+        setDistInputValue('');
+      } else {
+        setActivePointIndex(index);
+      }
     } else if (activeTool === 'select') {
       setSelectedElement({ type: 'point', index });
       setActivePointIndex(index);
     }
   };
 
-  // --- Drag and Drop Logic ---
-  const handleLabelDragStart = (index, e) => {
-    if (activeTool === 'select') {
-      e.stopPropagation();
-      pushToHistory();
-      setSelectedElement({ type: 'label', index });
-      setDraggingLabelIndex(index);
-    }
-  };
-
-  const handlePointerMove = (e) => {
+  const handleLabelDrag = (e) => {
     if (draggingLabelIndex === null || !svgRef.current) return;
     const { clickX, clickY } = getCanvasCoordinates(e);
-
     setFmbData((prev) => {
       const updated = [...prev.customLabels];
-      if (updated[draggingLabelIndex]) {
-        updated[draggingLabelIndex] = {
-          ...updated[draggingLabelIndex],
-          x: clickX,
-          y: clickY,
-        };
-      }
+      if (updated[draggingLabelIndex]) updated[draggingLabelIndex] = { ...updated[draggingLabelIndex], x: clickX, y: clickY };
       return { ...prev, customLabels: updated };
     });
   };
 
-  const handlePointerUp = () => {
-    setDraggingLabelIndex(null);
-  };
-
-  // --- Selection Actions (Delete / Edit) ---
   const handleDeleteSelected = () => {
     if (!selectedElement) return;
     const { type, index } = selectedElement;
-
     pushToHistory();
 
-    if (type === 'label') {
-      setFmbData((prev) => ({
-        ...prev,
-        customLabels: prev.customLabels.filter((_, i) => i !== index)
-      }));
-    } else if (type === 'point') {
-      setFmbData((prev) => {
-        const filteredLines = prev.outerLines.filter(
-          (l) => l.p1Index !== index && l.p2Index !== index
-        ).map((l) => ({
-          ...l,
-          p1Index: l.p1Index > index ? l.p1Index - 1 : l.p1Index,
-          p2Index: l.p2Index > index ? l.p2Index - 1 : l.p2Index,
-        }));
-
-        const filteredFirlExt = (prev.firlExtensions || []).filter(
-          (ext) => ext.p1Index !== index
-        ).map((ext) => ({
-          ...ext,
-          p1Index: ext.p1Index > index ? ext.p1Index - 1 : ext.p1Index,
-        }));
-
-        const filteredPoints = prev.outerPoints.filter((_, i) => i !== index);
+    setFmbData((prev) => {
+      if (type === 'label') return { ...prev, customLabels: prev.customLabels.filter((_, i) => i !== index) };
+      if (type === 'line') return { ...prev, outerLines: prev.outerLines.filter((_, i) => i !== index) };
+      if (type === 'firl_extension') return { ...prev, firlExtensions: prev.firlExtensions.filter((_, i) => i !== index) };
+      if (type === 'point') {
+        const remap = (i) => (i > index ? i - 1 : i);
         return {
           ...prev,
-          outerPoints: filteredPoints,
-          outerLines: filteredLines,
-          firlExtensions: filteredFirlExt,
+          outerPoints: prev.outerPoints.filter((_, i) => i !== index),
+          outerLines: prev.outerLines.filter((l) => l.p1Index !== index && l.p2Index !== index).map((l) => ({ ...l, p1Index: remap(l.p1Index), p2Index: remap(l.p2Index) })),
+          firlExtensions: prev.firlExtensions.filter((ext) => ext.p1Index !== index).map((ext) => ({ ...ext, p1Index: remap(ext.p1Index) })),
         };
-      });
-      setActivePointIndex(null);
-      setFirlStartPointIndex(null);
-    } else if (type === 'line') {
-      setFmbData((prev) => ({
-        ...prev,
-        outerLines: prev.outerLines.filter((_, i) => i !== index),
-      }));
-    } else if (type === 'firl_extension') {
-      setFmbData((prev) => ({
-        ...prev,
-        firlExtensions: prev.firlExtensions.filter((_, i) => i !== index),
-      }));
-    }
+      }
+      return prev;
+    });
     setSelectedElement(null);
+    setActivePointIndex(null);
+    setFirlStartPointIndex(null);
   };
 
-  const handleEditSelected = () => {
+  const handleStartEditSelected = () => {
     if (!selectedElement) return;
     const { type, index } = selectedElement;
-
-    if (type === 'label') {
-      let currentVal = fmbData.customLabels[index]?.text || '';
-      let newVal = prompt('உரையை மாற்றவும் (Edit text):', currentVal);
-      if (newVal !== null) {
-        pushToHistory();
-        setFmbData((prev) => {
-          const updated = [...prev.customLabels];
-          updated[index] = { ...updated[index], text: newVal };
-          return { ...prev, customLabels: updated };
-        });
-      }
-    } else if (type === 'line') {
-      let currentVal = fmbData.outerLines[index]?.dist || '';
-      let newVal = prompt('அளவை மாற்றியமைக்கவும் (Edit measurement):', currentVal);
-      if (newVal !== null) {
-        pushToHistory();
-        setFmbData((prev) => {
-          const updated = [...prev.outerLines];
-          if (updated[index]) {
-            updated[index] = { ...updated[index], dist: newVal };
-          }
-          return { ...prev, outerLines: updated };
-        });
-      }
+    if (type === 'label' || type === 'line') {
+      const initialVal = type === 'label' ? fmbData.customLabels[index]?.text : fmbData.outerLines[index]?.dist;
+      setEditingElement({ type, index, initialValue: initialVal || '' });
+      setEditInputValue(initialVal || '');
     }
   };
 
-  const renderSVGLineText = (text, p1, p2, isSelected, onClickHandler) => {
-    let midX = (p1.x + p2.x) / 2;
-    let midY = (p1.y + p2.y) / 2;
-    let dx = p2.x - p1.x;
-    let dy = p2.y - p1.y;
-    let len = Math.sqrt(dx * dx + dy * dy);
-    if (len === 0) return null;
+  const renderLineText = (text, p1, p2, isSelected, onClick) => {
+    const midX = (p1.x + p2.x) / 2, midY = (p1.y + p2.y) / 2;
+    const dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.hypot(dx, dy);
+    if (!len) return null;
 
-    let nx = -dy / len;
-    let ny = dx / len;
-
-    let finalX = midX + nx * -12;
-    let finalY = midY + ny * -12;
+    const finalX = midX + (-dy / len) * -12, finalY = midY + (dx / len) * -12;
     let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
     if (angle > 90 || angle < -90) angle += 180;
 
-    const displayStr = typeof text === 'number' ? text.toFixed(1) : (text || '');
-
     return (
-      <text
-        key={`line-text-${finalX}-${finalY}`}
-        x={finalX}
-        y={finalY}
-        fill={isSelected ? '#dd6b20' : '#000000'}
-        fontSize="11"
-        fontWeight="bold"
-        textAnchor="middle"
-        dominantBaseline="central"
-        cursor="pointer"
-        onClick={onClickHandler}
-        transform={`rotate(${angle}, ${finalX}, ${finalY})`}
-      >
-        {displayStr}
+      <text x={finalX} y={finalY} fill={isSelected ? '#dd6b20' : '#000'} fontSize="11" fontWeight="bold" textAnchor="middle" dominantBaseline="central" cursor="pointer" onClick={onClick} transform={`rotate(${angle}, ${finalX}, ${finalY})`}>
+        {typeof text === 'number' ? text.toFixed(1) : text || ''}
       </text>
     );
   };
 
-  const renderSVGContent = () => {
-    const st = fmbData;
-    let linesSVG = [];
-    let firlLinesSVG = [];
-    let pointsSVG = [];
-    let customLabelsSVG = [];
+  if (!isOpen) return null;
 
-    // 1. Render Boundary Lines
-    st.outerLines.forEach((line, idx) => {
-      const p1 = st.outerPoints[line.p1Index];
-      const p2 = st.outerPoints[line.p2Index];
-
-      if (!p1 || !p2) return;
-
-      let isLineSelected = selectedElement?.type === 'line' && selectedElement?.index === idx;
-
-      linesSVG.push(
-        <g key={`line-group-${idx}`}>
-          <line
-            x1={p1.x}
-            y1={p1.y}
-            x2={p2.x}
-            y2={p2.y}
-            stroke={isLineSelected ? '#ed8936' : '#000000'}
-            strokeWidth={isLineSelected ? '4' : '2.5'}
-            cursor={activeTool === 'select' ? 'pointer' : 'default'}
-            onClick={(e) => {
-              if (activeTool === 'select') {
-                e.stopPropagation();
-                setSelectedElement({ type: 'line', index: idx });
-              }
-            }}
-          />
-          {renderSVGLineText(
-            line.dist,
-            p1,
-            p2,
-            isLineSelected,
-            (e) => {
-              if (activeTool === 'select') {
-                e.stopPropagation();
-                setSelectedElement({ type: 'line', index: idx });
-              }
-            }
-          )}
-        </g>
-      );
-    });
-
-    // 2. Render FIRL Extension Direction Lines (Solid lines with NO end points or numbers)
-    if (st.firlExtensions) {
-      st.firlExtensions.forEach((ext, idx) => {
-        const p1 = st.outerPoints[ext.p1Index];
-        if (!p1) return;
-
-        let isFirlSelected = selectedElement?.type === 'firl_extension' && selectedElement?.index === idx;
-
-        firlLinesSVG.push(
-          <line
-            key={`firl-ext-${idx}`}
-            x1={p1.x}
-            y1={p1.y}
-            x2={ext.x2}
-            y2={ext.y2}
-            stroke={isFirlSelected ? '#ed8936' : '#000000'}
-            strokeWidth={isFirlSelected ? '4' : '2'}
-            cursor={activeTool === 'select' ? 'pointer' : 'default'}
-            onClick={(e) => {
-              if (activeTool === 'select') {
-                e.stopPropagation();
-                setSelectedElement({ type: 'firl_extension', index: idx });
-              }
-            }}
-          />
-        );
-      });
-    }
-
-    // 3. Render Boundary Points
-    st.outerPoints.forEach((p, idx) => {
-      let isActivePoint = activePointIndex === idx;
-      let isFirlStart = firlStartPointIndex === idx;
-      let isPointSelected = selectedElement?.type === 'point' && selectedElement?.index === idx;
-
-      pointsSVG.push(
-        <g key={`point-g-${idx}`} onClick={(e) => handlePointClick(idx, e)} className="cursor-pointer">
-          {(isActivePoint || isPointSelected || isFirlStart) && (
-            <circle
-              cx={p.x}
-              cy={p.y}
-              r="11"
-              fill="none"
-              stroke={isFirlStart ? '#3182ce' : '#ed8936'}
-              strokeWidth="2"
-              strokeDasharray="3 3"
-            />
-          )}
-          <circle
-            cx={p.x}
-            cy={p.y}
-            r={isActivePoint || isPointSelected || isFirlStart ? "7" : "5"}
-            fill={isFirlStart ? '#3182ce' : (isActivePoint || isPointSelected ? '#ed8936' : '#2b6cb0')}
-          />
-        </g>
-      );
-    });
-
-    // 4. Render Custom Text Labels
-    st.customLabels.forEach((lbl, idx) => {
-      let isLabelSelected = selectedElement?.type === 'label' && selectedElement?.index === idx;
-
-      customLabelsSVG.push(
-        <g key={`custom-label-g-${lbl.id || idx}`}>
-          {isLabelSelected && (
-            <rect
-              x={lbl.x - 30}
-              y={lbl.y - 14}
-              width="60"
-              height="28"
-              fill="none"
-              stroke="#ed8936"
-              strokeWidth="2"
-              strokeDasharray="3 3"
-              rx="4"
-            />
-          )}
-          <text
-            x={lbl.x}
-            y={lbl.y}
-            fill={isLabelSelected ? '#dd6b20' : '#000000'}
-            fontSize="13"
-            fontWeight="bold"
-            textAnchor="middle"
-            dominantBaseline="central"
-            cursor={activeTool === 'select' ? 'grab' : 'default'}
-            onPointerDown={(e) => handleLabelDragStart(idx, e)}
-            onTouchStart={(e) => handleLabelDragStart(idx, e)}
-          >
-            {lbl.text}
-          </text>
-        </g>
-      );
-    });
-
-    return (
-      <g>
-        {firlLinesSVG}
-        {linesSVG}
-        {pointsSVG}
-        {customLabelsSVG}
-      </g>
-    );
+  const selectLine = (type, index, e) => {
+    if (activeTool === 'select') { e.stopPropagation(); setSelectedElement({ type, index }); }
   };
 
-  if (!isOpen) return null;
+  const resetToolOverlayStates = () => {
+    setSelectedElement(null);
+    setFirlStartPointIndex(null);
+    setPendingConnection(null);
+    setPendingTextInsert(null);
+    setEditingElement(null);
+  };
 
   return (
     <div className="drawing-modal-overlay">
@@ -532,223 +286,189 @@ export default function DrawingPanel({
 
         <div className="drawing-modal-body">
           <div className="drawing-toolbar">
-            <button
-              type="button"
-              className={`tool-btn ${activeTool === 'draw' ? 'tool-btn-active' : ''}`}
-              onClick={() => { setActiveTool('draw'); setSelectedElement(null); setFirlStartPointIndex(null); }}
-            >
-              ✏️ Boundary Lines
-            </button>
-            <button
-              type="button"
-              className={`tool-btn ${activeTool === 'draw_firl' ? 'tool-btn-active' : ''}`}
-              onClick={() => { setActiveTool('draw_firl'); setSelectedElement(null); setFirlStartPointIndex(null); }}
-            >
-              📏 FIRL Line
-            </button>
-            <button
-              type="button"
-              className={`tool-btn ${activeTool === 'add_text' ? 'tool-btn-active' : ''}`}
-              onClick={() => { setActiveTool('add_text'); setSelectedElement(null); setFirlStartPointIndex(null); }}
-            >
-              🔤 Add Survey Number
-            </button>
-            <button
-              type="button"
-              className={`tool-btn ${activeTool === 'select' ? 'tool-btn-active' : ''}`}
-              onClick={() => { setActiveTool('select'); setFirlStartPointIndex(null); }}
-            >
-              🔍 Edit length / Move text
-            </button>
-            <button
-              type="button"
-              className="tool-btn btn-undo"
-              onClick={handleUndo}
-              disabled={historyStack.length === 0}
-              style={{ opacity: historyStack.length === 0 ? 0.5 : 1 }}
-            >
+            {[
+              { id: 'draw', label: '✏️ Boundary Lines' },
+              { id: 'draw_firl', label: '📏 FIRL Line' },
+              { id: 'add_text', label: '🔤 Add Survey Number' },
+              { id: 'select', label: '🔍 Edit length / Move text' },
+            ].map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={`tool-btn ${activeTool === t.id ? 'tool-btn-active' : ''}`}
+                onClick={() => {
+                  setActiveTool(t.id);
+                  resetToolOverlayStates();
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+            <button type="button" className="tool-btn btn-undo" onClick={handleUndo} disabled={!historyStack.length} style={{ opacity: historyStack.length ? 1 : 0.5 }}>
               ↺ Undo / Back
             </button>
           </div>
 
-          {/* Helper Banner for FIRL Extensions */}
           {activeTool === 'draw_firl' && (
             <div className="firl-hint-banner">
               ℹ️ FIRL கோடு வரைவதற்கு தொடங்கும் புள்ளியைக் கிளிக் செய்து, பின் திசையைக் கிளிக் செய்யவும்.
-              {firlStartPointIndex !== null && <strong> — [தொடக்கப் புள்ளி தேர்வு செய்யப்பட்டது! திசையைக் கிளிக் செய்யவும்]</strong>}
+              {firlStartPointIndex !== null && <strong> — [தொடக்கப் புள்ளி தேர்வு செய்யப்பட்டது!]</strong>}
             </div>
           )}
 
-          {selectedElement && activeTool === 'select' && (
+          {selectedElement && activeTool === 'select' && !editingElement && (
             <div className="selection-action-bar">
-              <span className="selection-info">
-                தேர்வு: <strong>{selectedElement.type.replace('_', ' ').toUpperCase()} #{selectedElement.index + 1}</strong>
-              </span>
+              <span className="selection-info">Selected: <strong>{selectedElement.type.replace('_', ' ').toUpperCase()} #{selectedElement.index + 1}</strong></span>
               <div>
-                {(selectedElement.type === 'label' || selectedElement.type === 'line') && (
-                  <button type="button" onClick={handleEditSelected} className="action-sub-btn edit-btn">
-                    ✏️ திருத்து
-                  </button>
-                )}
-                <button type="button" onClick={handleDeleteSelected} className="action-sub-btn delete-btn">
-                  ❌ நீக்கு
-                </button>
+                {['label', 'line'].includes(selectedElement.type) && <button type="button" onClick={handleStartEditSelected} className="action-sub-btn edit-btn">✏️ Edit</button>}
+                <button type="button" onClick={handleDeleteSelected} className="action-sub-btn delete-btn">❌ Delete</button>
               </div>
             </div>
           )}
 
-          <div className="svg-canvas-wrapper select-none">
-            <svg
-              ref={svgRef}
-              width={PANEL_WIDTH}
-              height={PANEL_HEIGHT}
-              viewBox={`0 0 ${PANEL_WIDTH} ${PANEL_HEIGHT}`}
-              preserveAspectRatio="xMidYMid meet"
-              onClick={handleCanvasInteraction}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onTouchMove={handlePointerMove}
-              onTouchEnd={handlePointerUp}
-              className="border border-slate-200 rounded shadow-inner bg-white block mx-auto relative touch-none"
-              style={{ maxWidth: '100%', height: 'auto', touchAction: 'none' }}
-            >
-              {renderSVGContent()}
+          <div className="svg-canvas-wrapper select-none relative">
+            {/* FLOATING CARD 1: Distance Measurement Input */}
+            {pendingConnection && (
+              <form onSubmit={handleConfirmPendingConnection} className="floating-dist-card">
+                <span className="floating-card-label">Enter distance:</span>
+                <input type="text" value={distInputValue} onChange={(e) => setDistInputValue(e.target.value)} placeholder="0.0" className="floating-card-input" autoFocus />
+                <button type="submit" className="floating-card-btn confirm-btn">OK</button>
+                <button type="button" onClick={() => setPendingConnection(null)} className="floating-card-btn cancel-btn">Cancel</button>
+              </form>
+            )}
+
+            {/* FLOATING CARD 2: Survey Number Text Input */}
+            {pendingTextInsert && (
+              <form onSubmit={handleConfirmTextInsert} className="floating-dist-card">
+                <span className="floating-card-label">Survey Number / Text:</span>
+                <input type="text" value={textInputValue} onChange={(e) => setTextInputValue(e.target.value)} placeholder="எ.கா. 12/1A" className="floating-card-input wide-input" autoFocus />
+                <button type="submit" className="floating-card-btn confirm-btn">OK</button>
+                <button type="button" onClick={() => setPendingTextInsert(null)} className="floating-card-btn cancel-btn">Cancel</button>
+              </form>
+            )}
+
+            {/* FLOATING CARD 3: Edit Length / Text Input */}
+            {editingElement && (
+              <form onSubmit={handleConfirmEdit} className="floating-dist-card">
+                <span className="floating-card-label">
+                  {editingElement.type === 'label' ? 'உரையை திருத்தவும்:' : 'அளவை திருத்தவும்:'}
+                </span>
+                <input type="text" value={editInputValue} onChange={(e) => setEditInputValue(e.target.value)} className="floating-card-input wide-input" autoFocus />
+                <button type="submit" className="floating-card-btn confirm-btn">Save</button>
+                <button type="button" onClick={() => setEditingElement(null)} className="floating-card-btn cancel-btn">Cancel</button>
+              </form>
+            )}
+
+            <svg ref={svgRef} width={PANEL_WIDTH} height={PANEL_HEIGHT} viewBox={`0 0 ${PANEL_WIDTH} ${PANEL_HEIGHT}`} preserveAspectRatio="xMidYMid meet" onClick={handleCanvasInteraction} onPointerMove={handleLabelDrag} onPointerUp={() => setDraggingLabelIndex(null)} className="border border-slate-200 rounded shadow-inner bg-white block mx-auto relative touch-none" style={{ maxWidth: '100%', height: 'auto', touchAction: 'none' }}>
+              <g>
+                {/* FIRL Extensions */}
+                {fmbData.firlExtensions?.map((ext, idx) => {
+                  const p1 = fmbData.outerPoints[ext.p1Index];
+                  if (!p1) return null;
+                  const sel = selectedElement?.type === 'firl_extension' && selectedElement?.index === idx;
+                  return <line key={`firl-${idx}`} x1={p1.x} y1={p1.y} x2={ext.x2} y2={ext.y2} stroke={sel ? '#ed8936' : '#000'} strokeWidth={sel ? '4' : '2'} cursor={activeTool === 'select' ? 'pointer' : 'default'} onClick={(e) => selectLine('firl_extension', idx, e)} />;
+                })}
+
+                {/* Outer Lines */}
+                {fmbData.outerLines.map((line, idx) => {
+                  const p1 = fmbData.outerPoints[line.p1Index], p2 = fmbData.outerPoints[line.p2Index];
+                  if (!p1 || !p2) return null;
+                  const sel = selectedElement?.type === 'line' && selectedElement?.index === idx;
+                  return (
+                    <g key={`line-${idx}`}>
+                      <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke={sel ? '#ed8936' : '#000'} strokeWidth={sel ? '4' : '2.5'} cursor={activeTool === 'select' ? 'pointer' : 'default'} onClick={(e) => selectLine('line', idx, e)} />
+                      {renderLineText(line.dist, p1, p2, sel, (e) => selectLine('line', idx, e))}
+                    </g>
+                  );
+                })}
+
+                {/* Pending Line Preview */}
+                {pendingConnection && (() => {
+                  const p1 = fmbData.outerPoints[pendingConnection.p1Index];
+                  const p2 = pendingConnection.isNewPoint ? pendingConnection.pointData : fmbData.outerPoints[pendingConnection.p2Index];
+                  return p1 && p2 ? <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#3182ce" strokeWidth="2.5" strokeDasharray="4 4" /> : null;
+                })()}
+
+                {/* Points */}
+                {fmbData.outerPoints.map((p, idx) => {
+                  const active = activeTool === 'draw' && activePointIndex === idx;
+                  const firl = activeTool === 'draw_firl' && firlStartPointIndex === idx;
+                  const sel = selectedElement?.type === 'point' && selectedElement?.index === idx;
+
+                  return (
+                    <g key={`point-${idx}`} onClick={(e) => handlePointClick(idx, e)} className="cursor-pointer">
+                      {(active || sel || firl) && <circle cx={p.x} cy={p.y} r="11" fill="none" stroke={firl ? '#3182ce' : '#ed8936'} strokeWidth="2" strokeDasharray="3 3" />}
+                      <circle cx={p.x} cy={p.y} r={active || sel || firl ? "7" : "5"} fill={firl ? '#3182ce' : (active || sel ? '#ed8936' : '#2b6cb0')} />
+                    </g>
+                  );
+                })}
+
+                {/* Pending Point Preview */}
+                {pendingConnection?.isNewPoint && <circle cx={pendingConnection.pointData.x} cy={pendingConnection.pointData.y} r="6" fill="#3182ce" />}
+
+                {/* Text Marker Preview when Adding Text */}
+                {pendingTextInsert && <circle cx={pendingTextInsert.x} cy={pendingTextInsert.y} r="4" fill="#ed8936" />}
+
+                {/* Custom Labels */}
+                {fmbData.customLabels.map((lbl, idx) => {
+                  const sel = selectedElement?.type === 'label' && selectedElement?.index === idx;
+                  return (
+                    <g key={`lbl-${lbl.id || idx}`}>
+                      {sel && <rect x={lbl.x - 30} y={lbl.y - 14} width="60" height="28" fill="none" stroke="#ed8936" strokeWidth="2" strokeDasharray="3 3" rx="4" />}
+                      <text x={lbl.x} y={lbl.y} fill={sel ? '#dd6b20' : '#000'} fontSize="13" fontWeight="bold" textAnchor="middle" dominantBaseline="central" cursor={activeTool === 'select' ? 'grab' : 'default'} onPointerDown={(e) => { if (activeTool === 'select') { e.stopPropagation(); pushToHistory(); setSelectedElement({ type: 'label', index: idx }); setDraggingLabelIndex(idx); } }}>
+                        {lbl.text}
+                      </text>
+                    </g>
+                  );
+                })}
+              </g>
             </svg>
           </div>
         </div>
 
         <div className="drawing-modal-footer">
-          <button type="button" onClick={handleResetDrawing} className="modal-footer-btn clear-btn">
-            🗑️ Clear
-          </button>
+          <button type="button" onClick={handleResetDrawing} className="modal-footer-btn clear-btn">🗑️ Clear</button>
           <div className="footer-right-actions">
-            <button type="button" onClick={handleSaveDrawing} className="modal-footer-btn save-btn">
-              💾 Save
-            </button>
+            <button type="button" onClick={() => { onSave(fmbData); onClose(); }} className="modal-footer-btn save-btn">💾 Save</button>
           </div>
         </div>
       </div>
 
       <style>{`
-        .drawing-modal-overlay {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background-color: rgba(0, 0, 0, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          padding: 10px;
-        }
-        .drawing-modal-container {
-          background: white;
-          width: 100%;
-          max-width: 620px;
-          border-radius: 8px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          max-height: 95vh;
-        }
-        .drawing-modal-header {
-          padding: 12px 16px;
-          color: #2b6cb0;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
+        .drawing-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 10px; }
+        .drawing-modal-container { background: white; width: 100%; max-width: 620px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); display: flex; flex-direction: column; overflow: hidden; max-height: 95vh; }
+        .drawing-modal-header { padding: 12px 16px; color: #2b6cb0; display: flex; justify-content: space-between; align-items: center; }
         .drawing-modal-title { margin: 0; font-size: 14px; font-weight: bold; }
-        .modal-close-btn { color: #dc2626; background:transparent; border: none; font-size: 32px; cursor: pointer;  font-weight:bold; padding: 0 5px; }
+        .modal-close-btn { color: #dc2626; background: transparent; border: none; font-size: 32px; cursor: pointer; font-weight: bold; padding: 0 5px; }
         .drawing-modal-body { padding: 12px; overflow-y: auto; }
         .drawing-toolbar { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
-        .tool-btn {
-          flex: 1 1 15%;
-          min-width: 60px;
-          padding: 8px 4px;
-          background-color: #edf2f7;
-          color: #2d3748;
-          border: 1px solid #cbd5e0;
-          border-radius: 6px;
-          font-size: 11px;
-          font-weight: bold;
-          cursor: pointer;
-          touch-action: manipulation;
-          text-align: center;
-        }
-        .tool-btn-active {
-          background-color: #3182ce !important;
-          color: white !important;
-          border-color: #2b6cb0 !important;
-        }
-        .btn-undo { background-color: #feebc8; color: #dd6b20; border-color: #fbd38d; }
-        .btn-danger { background-color: #fff5f5; color: #e53e3e; border-color: #fed7d7; }
-        .firl-hint-banner {
-          background-color: #ebf8ff;
-          border: 1px solid #bee3f8;
-          color: #2b6cb0;
-          padding: 6px 10px;
-          border-radius: 6px;
-          font-size: 11px;
-          margin-bottom: 8px;
-        }
-        .selection-action-bar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          background-color: #fffaf0;
-          border: 1px solid #feebc8;
-          padding: 6px 10px;
-          border-radius: 6px;
-          margin-bottom: 10px;
-        }
+        .tool-btn { flex: 1 1 15%; min-width: 60px; padding: 8px 4px; background: #edf2f7; color: #2d3748; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; }
+        .tool-btn-active { background: #3182ce !important; color: white !important; border-color: #2b6cb0 !important; }
+        .btn-undo { background: #feebc8; color: #dd6b20; border-color: #fbd38d; }
+        .firl-hint-banner { background: #ebf8ff; border: 1px solid #bee3f8; color: #2b6cb0; padding: 6px 10px; border-radius: 6px; font-size: 11px; margin-bottom: 8px; }
+        .selection-action-bar { display: flex; align-items: center; justify-content: space-between; background: #fffaf0; border: 1px solid #feebc8; padding: 6px 10px; border-radius: 6px; margin-bottom: 10px; }
         .selection-info { font-size: 11px; color: #dd6b20; }
-        .action-sub-btn {
-          padding: 6px 10px;
-          font-size: 11px;
-          font-weight: bold;
-          border-radius: 4px;
-          cursor: pointer;
-          border: none;
-          margin-left: 4px;
-          touch-action: manipulation;
-        }
-        .edit-btn { background-color: #3182ce; color: white; }
-        .delete-btn { background-color: #e53e3e; color: white; }
-        .svg-canvas-wrapper {
-          width: 100%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          background: #f8fafc;
-          border-radius: 6px;
-          padding: 4px;
-        }
-        .drawing-modal-footer {
-          padding: 10px 16px;
-          background-color: #f7fafc;
-          border-top: 1px solid #e2e8f0;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
+        .action-sub-btn { padding: 6px 10px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; border: none; margin-left: 4px; }
+        .edit-btn { background: #3182ce; color: white; }
+        .delete-btn { background: #e53e3e; color: white; }
+        .svg-canvas-wrapper { width: 100%; display: flex; justify-content: center; align-items: center; background: #f8fafc; border-radius: 6px; padding: 4px; position: relative; }
+        .floating-dist-card { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: #fff; border: 1.5px solid #3182ce; padding: 6px 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(49,130,206,0.25); z-index: 30; display: flex; align-items: center; gap: 8px; }
+        .floating-card-label { font-size: 11px; font-weight: bold; color: #2b6cb0; white-space: nowrap; }
+        .floating-card-input { width: 70px; padding: 4px 6px; font-size: 12px; border: 1px solid #cbd5e0; border-radius: 4px; outline: none; text-align: center; font-weight: bold; }
+        .floating-card-input.wide-input { width: 110px; text-align: left; }
+        .floating-card-btn { padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; border: none; }
+        .confirm-btn { background: #3182ce; color: white; }
+        .cancel-btn { background: #e2e8f0; color: #4a5568; }
+        .drawing-modal-footer { padding: 10px 16px; background: #f7fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         .footer-right-actions { display: flex; gap: 8px; }
-        .modal-footer-btn {
-          padding: 10px 16px;
-          border-radius: 6px;
-          font-size: 12px;
-          font-weight: bold;
-          cursor: pointer;
-          border: none;
-          touch-action: manipulation;
-        }
-        .clear-btn { background-color: #e53e3e; color: white; }
-        .save-btn { background-color: #ed8936; color: white; }
-
+        .modal-footer-btn { padding: 10px 16px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; border: none; }
+        .clear-btn { background: #e53e3e; color: white; }
+        .save-btn { background: #ed8936; color: white; }
         @media (max-width: 480px) {
           .drawing-modal-container { width: 100%; height: 100%; max-height: 100vh; border-radius: 0; }
           .tool-btn { font-size: 10px; padding: 6px 2px; }
           .drawing-modal-body { padding: 8px; }
+          .floating-dist-card { width: 90%; justify-content: space-between; }
         }
       `}</style>
     </div>

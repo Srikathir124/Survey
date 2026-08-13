@@ -1,19 +1,22 @@
 import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { trackPageView } from "../utils/analytics.js";
 
-function Navbar({ setPage, currentPage }) {
+function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleNavigation = (page) => {
-    setPage(page);
+  const handleNavigation = (path) => {
+    navigate(path);
     setIsOpen(false);
-    trackPageView(page);
+    trackPageView(path);
   };
 
-  const getLinkStyle = (page) => ({
+  const getLinkStyle = (path) => ({
     ...styles.link,
-    backgroundColor: currentPage === page ? "#2e2e48" : "transparent",
-    fontWeight: currentPage === page ? "bold" : "normal",
+    backgroundColor: location.pathname === path ? "#2e2e48" : "transparent",
+    fontWeight: location.pathname === path ? "bold" : "normal",
     borderRadius: "6px",
     padding: "10px",
   });
@@ -38,72 +41,72 @@ function Navbar({ setPage, currentPage }) {
       >
         <div style={styles.menuItems}>
           <button
-            style={getLinkStyle("unevenshapes")}
-            onClick={() => handleNavigation("unevenshapes")}
+            style={getLinkStyle("/unevenshapes")}
+            onClick={() => handleNavigation("/unevenshapes")}
           >
             Area of Uneven Shapes
           </button>
 
           <button
-            style={getLinkStyle("pythagoras")}
-            onClick={() => handleNavigation("pythagoras")}
+            style={getLinkStyle("/pythagoras")}
+            onClick={() => handleNavigation("/pythagoras")}
           >
             Pythagoras Calculation
           </button>
 
           <button
-            style={getLinkStyle("nos")}
-            onClick={() => handleNavigation("nos")}
+            style={getLinkStyle("/nos")}
+            onClick={() => handleNavigation("/nos")}
           >
             NOS Calculation
           </button>
 
           <button
-            style={getLinkStyle("intersection")}
-            onClick={() => handleNavigation("intersection")}
+            style={getLinkStyle("/intersection")}
+            onClick={() => handleNavigation("/intersection")}
           >
             Intersection Calculation
           </button>
+          
           <button
-            style={getLinkStyle("fline")}
-            onClick={() => handleNavigation("fline")}
+            style={getLinkStyle("/fline")}
+            onClick={() => handleNavigation("/fline")}
           >
             F Line Statement
           </button>
+          
           <button
-            style={getLinkStyle("a-reg-correction")}
-            onClick={() => handleNavigation("a-reg-correction")}
+            style={getLinkStyle("/a-reg-correction")}
+            onClick={() => handleNavigation("/a-reg-correction")}
           >
             A-Reg Correction Statement
           </button>
+          
           <button
-            style={getLinkStyle("conversion-quiz")}
-            onClick={() => handleNavigation("conversion-quiz")}
+            style={getLinkStyle("/conversion-quiz")}
+            onClick={() => handleNavigation("/conversion-quiz")}
           >
-            Conversion Quiz
+            Quiz
           </button>
+          
           <button
-            // style={getLinkStyle("departmental-exam")}
-            style={{display:'none'}}
-            onClick={() => handleNavigation("departmental-exam")}
+            style={{ display: "none" }}
+            onClick={() => handleNavigation("/departmental-exam")}
           >
             Departmental Exam
           </button>
 
-          {/* Calculator - Make result to 2 digit. Add Buttons '(',')', '<', '>'*/}
-          {/* Area Correction Statement */}
+          {/* Surveyor Profiles */}
+          {/* Summon Statement */}
           {/* Area Mismatch Statement */}
+          {/* G Line Conversion */}
           {/* Q & A */}
-          {/* Dairy */}
-          {/* Licensed Surveyor near you */}
-          {/* Games */}
         </div>
 
         <div style={styles.footerItems}>
-          <button 
-            // style={getLinkStyle("help")}
-            style={{display:'none'}}
-            onClick={() => handleNavigation("help")}
+          <button
+            style={{ display: "none" }}
+            onClick={() => handleNavigation("/help")}
           >
             Facing Issues?
           </button>
@@ -164,7 +167,7 @@ const styles = {
     flexDirection: "column",
   },
   footerItems: {
-    marginBottom: "80px", // Pushed up due to topbar offset
+    marginBottom: "80px",
   },
   link: {
     background: "transparent",
