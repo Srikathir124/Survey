@@ -3,7 +3,7 @@ import FileNameModal from "./FileNameModal";
 import { trackEvent } from "../../utils/analytics.js";
 
 // EditableSpan for inline header/body text
-const EditableSpan = ({ value, onChange, minWidth = "80px" }) => (
+const EditableSpan = ({ value, onChange, minWidth = "40px" }) => (
   <span
     className="editable-span"
     style={{ minWidth }}
@@ -11,13 +11,14 @@ const EditableSpan = ({ value, onChange, minWidth = "80px" }) => (
     suppressContentEditableWarning
     onBlur={(e) => onChange(e.target.innerText)}
   >
-    {value}
+    {value || ''}
   </span>
 );
 
-// TableBlock using textarea for auto-wrapping and expanding cell heights
+// TableBlock with horizontal scroll container and responsive cell inputs
 const TableBlock = ({ rows, setRows, handleCellChange, addRow, removeRow }) => (
-  <div className="table-wrapper">
+  <div className="table-scroll-container">
+    <div className="table-scroll-hint no-print">↔ அட்டவணையை பக்கவாட்டில் நகர்த்தவும் (Swipe to view table)</div>
     <table className="pdf-table">
       <thead>
         <tr>
@@ -66,7 +67,9 @@ const TableBlock = ({ rows, setRows, handleCellChange, addRow, removeRow }) => (
               </td>
             ))}
             <td className="no-print text-center">
-              {rows.length > 1 && <button className="del-btn" onClick={() => removeRow(rows, setRows, index)}>✕</button>}
+              {rows.length > 1 && (
+                <button className="del-btn" onClick={() => removeRow(rows, setRows, index)}>✕</button>
+              )}
             </td>
           </tr>
         ))}
@@ -118,7 +121,9 @@ export default function AreaCorrection() {
     <div className="area-correction-container">
       {/* Top Action Controls */}
       <div className="no-print controls-card">
-        <button onClick={() => setShowFileNameModal(true)} className="download-pdf-btn">Download PDF</button>
+        <button onClick={() => setShowFileNameModal(true)} className="download-pdf-btn">
+          Download PDF
+        </button>
       </div>
 
       <div className="printable-document">
@@ -130,22 +135,22 @@ export default function AreaCorrection() {
             <div className="font-bold underline text-lg">அறிவிப்பு</div>
           </div>
 
-          <div className="inline-form-fields margin-top-15">
-            <EditableSpan value={taluk} onChange={setTaluk} minWidth="100px" /> வட்டம்{' '}
-            <EditableSpan value={village} onChange={setVillage} minWidth="120px" /> கிராமத்திலிருக்கும்{' '}
-            <EditableSpan value={sonOf} onChange={setSonOf} minWidth="100px" /> மகன்{' '}
-            <EditableSpan value={pattaNo} onChange={setPattaNo} minWidth="80px" /> எண் பட்டாதாரர்{' '}
-            <EditableSpan value={toPerson} onChange={setToPerson} minWidth="100px" /> க்கு{' '}
-            <EditableSpan value={docRef} onChange={setDocRef} minWidth="80px" /> தில் இணைக்கப்பட்ட அட்டவணையில் கண்ட மாறுதல் அவசியமாகக் காணப்படுகிறதென்றும் கிராமக் கணக்குகளில் மாறுதல் செய்ய உத்தேசிக்கப்பட்டிருக்கிறதென்றும் இதன்மூலம் அறிவிக்கப்படுகிறது உத்தேச மாறுதலுக்கு மறுப்பு எதுமிருந்தால் இந்த அறிவிப்பை பெற்ற 15 நாட்களுக்குள் அடியிற் கையொப்பிமிட்டிருப்பவதிடம் தாக்கல் செய்ய அந்தக்கால வரம்புக்குள் தகவல் கிடைக்கலில்லை என்றால் உத்தேச மாறுதல்கள் ஏற்றுக்கொண்டதாக கருதப்படும்.
+          <div className="inline-form-fields margin-top-10">
+            <EditableSpan value={taluk} onChange={setTaluk} minWidth="60px" /> வட்டம்{' '}
+            <EditableSpan value={village} onChange={setVillage} minWidth="70px" /> கிராமத்திலிருக்கும்{' '}
+            <EditableSpan value={sonOf} onChange={setSonOf} minWidth="60px" /> மகன்{' '}
+            <EditableSpan value={pattaNo} onChange={setPattaNo} minWidth="50px" /> எண் பட்டாதாரர்{' '}
+            <EditableSpan value={toPerson} onChange={setToPerson} minWidth="70px" /> க்கு{' '}
+            <EditableSpan value={docRef} onChange={setDocRef} minWidth="50px" /> தில் இணைக்கப்பட்ட அட்டவணையில் கண்ட மாறுதல் அவசியமாகக் காணப்படுகிறதென்றும் கிராமக் கணக்குகளில் மாறுதல் செய்ய உத்தேசிக்கப்பட்டிருக்கிறதென்றும் இதன்மூலம் அறிவிக்கப்படுகிறது உத்தேச மாறுதலுக்கு மறுப்பு எதுமிருந்தால் இந்த அறிவிப்பை பெற்ற 15 நாட்களுக்குள் அடியிற் கையொப்பமிட்டிருப்பவரிடம் தாக்கல் செய்ய அந்தக்கால வரம்புக்குள் தகவல் கிடைக்கவில்லை என்றால் உத்தேச மாறுதல்கள் ஏற்றுக்கொண்டதாக கருதப்படும்.
           </div>
 
-          <div className="inline-location-line margin-top-15">
-            <EditableSpan value={district} onChange={setDistrict} minWidth="100px" /> மாவட்டம்,{' '}
-            <EditableSpan value={middleTaluk} onChange={setMiddleTaluk} minWidth="100px" /> வட்டம்{' '}
-            <EditableSpan value={middleVillage} onChange={setMiddleVillage} minWidth="120px" /> கிராமத்தில் செய்யப்பட வேண்டிய மாறுதல்கள் குறிப்பு
+          <div className="inline-location-line margin-top-10">
+            <EditableSpan value={district} onChange={setDistrict} minWidth="60px" /> மாவட்டம்,{' '}
+            <EditableSpan value={middleTaluk} onChange={setMiddleTaluk} minWidth="60px" /> வட்டம்{' '}
+            <EditableSpan value={middleVillage} onChange={setMiddleVillage} minWidth="70px" /> கிராமத்தில் செய்யப்பட வேண்டிய மாறுதல்கள் குறிப்பு
           </div>
 
-          <div className="margin-top-15">
+          <div className="margin-top-10">
             <TableBlock 
               rows={page1Rows} 
               setRows={setPage1Rows} 
@@ -164,16 +169,16 @@ export default function AreaCorrection() {
             <div className="font-bold underline text-lg">அறிவிப்பு</div>
           </div>
 
-          <div className="flex-between margin-top-15 font-bold">
-            <div>மாவட்டம் : <EditableSpan value={p2District} onChange={setP2District} minWidth="150px" /></div>
-            <div>வட்டம் : <EditableSpan value={p2Taluk} onChange={setP2Taluk} minWidth="150px" /></div>
+          <div className="flex-between margin-top-10 font-bold flex-wrap">
+            <div>மாவட்டம் : <EditableSpan value={p2District} onChange={setP2District} minWidth="80px" /></div>
+            <div>வட்டம் : <EditableSpan value={p2Taluk} onChange={setP2Taluk} minWidth="80px" /></div>
           </div>
 
-          <div className="text-center font-bold underline margin-top-15">
-            <EditableSpan value={p2Village} onChange={setP2Village} minWidth="120px" /> கிராமத்தில் பரப்பளவில் செய்ய வேண்டிய மாறுதல் குறிப்பு
+          <div className="text-center font-bold underline margin-top-10">
+            <EditableSpan value={p2Village} onChange={setP2Village} minWidth="80px" /> கிராமத்தில் பரப்பளவில் செய்ய வேண்டிய மாறுதல் குறிப்பு
           </div>
 
-          <div className="margin-top-15">
+          <div className="margin-top-10">
             <TableBlock 
               rows={page2Rows} 
               setRows={setPage2Rows} 
@@ -193,51 +198,173 @@ export default function AreaCorrection() {
         onCancel={() => setShowFileNameModal(false)}
         onConfirm={(fileName) => {
           setShowFileNameModal(false);
-          const originalTitle = document.title;
-          document.title = fileName;
-          window.print();
-          document.title = originalTitle;
+          if (window.AndroidPrinter && window.AndroidPrinter.printPage) {
+            window.AndroidPrinter.printPage(fileName);
+          } else {
+            const originalTitle = document.title;
+            document.title = fileName;
+            window.print();
+            document.title = originalTitle;
+          }
           trackEvent("pdf_generated", { document_name: fileName });
         }}
       />
 
       <style>{`
-        .area-correction-container { font-family: 'Times New Roman', serif; background: #e2e8f0; min-height: 100vh; padding: 20px 0; display: flex; flex-direction: column; align-items: center; }
-        .controls-card { width: 100%; max-width: 750px; background: #fff; padding: 12px; margin-bottom: 15px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: right; }
-        .download-pdf-btn { width:100%;  background: #2563eb; color: white; padding: 1%; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .add-row-btn { background: #059669; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; }
-
-        .printable-document { display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .a4-page { background: white; width: 210mm; min-height: 297mm; padding: 15mm 12mm; box-sizing: border-box; border: 1px solid #000; box-shadow: 0 4px 8px rgba(0,0,0,0.1); color: #000; font-size: 13px; line-height: 1.8; }
-        
-        .doc-header { text-align: center; line-height: 1.3; }
+        .area-correction-container {
+          font-family: 'Times New Roman', serif;
+          background: #f1f5f9;
+          min-height: 100vh;
+          width: 100%;
+          max-width: 100vw;
+          padding: 4px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          box-sizing: border-box;
+          overflow-x: hidden;
+        }
+        .controls-card {
+          width: 100%;
+          max-width: 750px;
+          background: #ffffff;
+          padding: 8px 10px;
+          margin-bottom: 8px;
+          border-radius: 6px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+          box-sizing: border-box;
+        }
+        .download-pdf-btn {
+          width: 100%;
+          background: #2563eb;
+          color: white;
+          padding: 10px;
+          border: none;
+          border-radius: 4px;
+          font-weight: bold;
+          cursor: pointer;
+          font-size: 13px;
+        }
+        .add-row-btn {
+          background: #059669;
+          color: white;
+          border: none;
+          padding: 4px 10px;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 11px;
+          margin-top: 4px;
+        }
+        .printable-document {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          align-items: center;
+        }
+        .a4-page {
+          background: white;
+          width: 100%;
+          max-width: 750px;
+          min-height: auto;
+          padding: 10px 8px;
+          box-sizing: border-box;
+          border: 1px solid #cbd5e1;
+          border-radius: 4px;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+          color: #000;
+          font-size: 12px;
+          line-height: 1.6;
+        }
+        .doc-header {
+          text-align: center;
+          line-height: 1.3;
+        }
         .font-bold { font-weight: bold; }
         .underline { text-decoration: underline; }
-        .text-lg { font-size: 16px; }
+        .text-lg { font-size: 14px; }
         .text-center { text-align: center; }
-        .flex-between { display: flex; justify-content: space-between; }
-        .margin-top-5 { margin-top: 5px; }
-        .margin-top-15 { margin-top: 15px; }
+        .flex-between { display: flex; justify-content: space-between; gap: 8px; }
+        .flex-wrap { flex-wrap: wrap; }
+        .margin-top-5 { margin-top: 4px; }
+        .margin-top-10 { margin-top: 8px; }
 
-        .editable-span { border-bottom: 1px dotted #000; display: inline-block; text-align: center; font-weight: bold; padding: 0 2px; }
+        .inline-form-fields, .inline-location-line {
+          text-align: justify;
+          word-break: break-word;
+        }
 
-        /* Table & Wrapped Cell Styles */
-        .table-wrapper { width: 100%; overflow-x: auto; }
-        .pdf-table { width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 11px; text-align: center; table-layout: fixed; }
-        .pdf-table th, .pdf-table td { border: 1px solid #000; padding: 2px 1px; vertical-align: middle; word-wrap: break-word; overflow-wrap: break-word; }
-        .th-group { font-weight: bold; font-size: 12px; }
-        .col-numbers-row td { font-weight: bold; font-size: 10px; }
-        
-        .th-vertical { height: 110px; vertical-align: bottom; padding-bottom: 5px; }
-        .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; margin: 0 auto; font-size: 11px; font-weight: bold; }
+        .editable-span {
+          border-bottom: 1px dotted #000;
+          display: inline-block;
+          text-align: center;
+          font-weight: bold;
+          padding: 0 2px;
+          background: #f8fafc;
+          word-break: break-word;
+          min-width: 40px;
+        }
 
+        /* Mobile-Friendly Table Wrapper with Horizontal Scroll */
+        .table-scroll-container {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          margin-top: 6px;
+          padding-bottom: 4px;
+        }
+        .table-scroll-hint {
+          font-size: 10px;
+          color: #64748b;
+          margin-bottom: 4px;
+          text-align: center;
+          font-style: italic;
+        }
+        .pdf-table {
+          width: 100%;
+          min-width: 650px; /* Ensures columns stay legible while scrolling */
+          border-collapse: collapse;
+          border: 1px solid #000;
+          font-size: 10.5px;
+          text-align: center;
+          table-layout: fixed;
+          background: #fff;
+        }
+        .pdf-table th, .pdf-table td {
+          border: 1px solid #000;
+          padding: 2px 1px;
+          vertical-align: middle;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+        }
+        .th-group {
+          font-weight: bold;
+          font-size: 11px;
+        }
+        .col-numbers-row td {
+          font-weight: bold;
+          font-size: 9px;
+        }
+        .th-vertical {
+          height: 100px;
+          vertical-align: bottom;
+          padding-bottom: 4px;
+        }
+        .vertical-text {
+          writing-mode: vertical-rl;
+          transform: rotate(180deg);
+          white-space: nowrap;
+          margin: 0 auto;
+          font-size: 10.5px;
+          font-weight: bold;
+        }
         .pdf-table textarea {
           width: 100%;
           border: none;
           outline: none;
           background: transparent;
           text-align: center;
-          font-size: 11px;
+          font-size: 10.5px;
           font-family: inherit;
           color: #000;
           resize: none;
@@ -246,83 +373,113 @@ export default function AreaCorrection() {
           word-break: break-word;
           box-sizing: border-box;
           padding: 2px 0;
-          min-height: 20px;
+          min-height: 18px;
           line-height: 1.2;
         }
-
-        .del-btn { background: #ef4444; color: white; border: none; border-radius: 2px; cursor: pointer; padding: 1px 4px; font-size: 10px; }
-
-        /* PRINT STYLES - Fixes 4-page overflow issue */
-        @media print {
-          @page {
-            size: A4 portrait;
-            margin: 0;
-          }
-
-          html, body {
-            background: white !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-          }
-
-          body * {
-            visibility: hidden !important;
-          }
-
-          .printable-document,
-          .printable-document * {
-            visibility: visible !important;
-          }
-
-          .printable-document {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 210mm !important;
-            display: block !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-
-          .a4-page {
-            border: none !important;
-            box-shadow: none !important;
-            width: 210mm !important;
-            min-height: 0 !important;
-            height: auto !important;
-            max-height: none !important;
-            padding: 12mm !important;
-            box-sizing: border-box !important;
-            margin: 0 !important;
-            overflow: visible !important;
-          }
-
-          /* Force page break only after Page 1 */
-          .page-1 {
-            break-after: page !important;
-            page-break-after: always !important;
-          }
-
-          .page-2 {
-            break-after: avoid !important;
-            page-break-after: avoid !important;
-          }
-
-          .no-print {
-            display: none !important;
-          }
-
-          .editable-span {
-            border-bottom: none !important;
-          }
-
-          .pdf-table textarea {
-            border: none !important;
-            resize: none !important;
-          }
+        .del-btn {
+          background: #ef4444;
+          color: white;
+          border: none;
+          border-radius: 2px;
+          cursor: pointer;
+          padding: 1px 4px;
+          font-size: 10px;
         }
+
+        /* PRINT STYLES - Strict A4 Dimensions & Formatting */
+          @media print {
+            @page {
+              size: A4 portrait;
+              margin: 12mm 10mm; /* Let @page handle margins instead of padding */
+            }
+
+            html, body {
+              background: white !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              width: 100% !important;
+              height: auto !important; /* Remove fixed 297mm height */
+            }
+
+            body * {
+              visibility: hidden !important;
+            }
+
+            .printable-document,
+            .printable-document * {
+              visibility: visible !important;
+            }
+
+            .printable-document {
+              position: static !important; /* Static avoids absolute coordinate overflow */
+              width: 100% !important;
+              display: block !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+
+            .a4-page {
+              border: none !important;
+              box-shadow: none !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              min-height: 0 !important; /* Remove min-height: 297mm to prevent overflow push */
+              height: auto !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              overflow: visible !important;
+              font-size: 12px !important;
+              line-height: 1.5 !important;
+              box-sizing: border-box !important;
+            }
+
+            .page-1 {
+              break-after: page !important;
+              page-break-after: always !important;
+            }
+
+            .page-2 {
+              break-after: auto !important;
+              page-break-after: auto !important;
+            }
+
+            .table-scroll-container {
+              overflow: visible !important;
+              width: 100% !important;
+            }
+
+            .pdf-table {
+              min-width: 100% !important;
+              width: 100% !important;
+              font-size: 10.5px !important;
+              table-layout: fixed !important;
+            }
+
+            .th-vertical {
+              height: 90px !important;
+            }
+
+            .vertical-text {
+              font-size: 10px !important;
+            }
+
+            .no-print, .table-scroll-hint {
+              display: none !important;
+            }
+
+            .editable-span {
+              border-bottom: none !important;
+              background: transparent !important;
+            }
+
+            .pdf-table textarea {
+              border: none !important;
+              resize: none !important;
+              font-size: 10.5px !important;
+              overflow: hidden !important;
+            }
+          }
+        
       `}</style>
     </div>
   );

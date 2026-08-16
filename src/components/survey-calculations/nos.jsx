@@ -1,36 +1,41 @@
 import React, { useState } from "react";
 import { trackEvent } from "../../utils/analytics.js";
 
+// Canvas coordinate space
+const VIEW_WIDTH = 400;
+const VIEW_HEIGHT = 380;
+
 function Nos() {
-  const A = { x: 80, y: 300 };
-  const C = { x: 320, y: 300 };
-  const B = { x: 200, y: 60 };
+  // Triangle Vertices (Shifted up slightly so AC at y=270 has plenty of margin)
+  const A = { x: 70, y: 270 };
+  const C = { x: 330, y: 270 };
+  const B = { x: 200, y: 50 };
 
   const D = {
     x: (A.x + C.x) / 2,
-    y: (A.y + C.y) / 2
+    y: (A.y + C.y) / 2,
   };
 
   const midAB = {
     x: (A.x + B.x) / 2,
-    y: (A.y + B.y) / 2
+    y: (A.y + B.y) / 2,
   };
 
   const midBC = {
     x: (B.x + C.x) / 2,
-    y: (B.y + C.y) / 2
+    y: (B.y + C.y) / 2,
   };
 
   const centroid = {
     x: (A.x + B.x + C.x) / 3,
-    y: (A.y + B.y + C.y) / 3
+    y: (A.y + B.y + C.y) / 3,
   };
 
   const getAngle = (p1, p2) => {
     return (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
   };
 
-  const getOffsetPoint = (p1, p2, mid, distance = 30) => {
+  const getOffsetPoint = (p1, p2, mid, distance = 26) => {
     let dx = p2.x - p1.x;
     let dy = p2.y - p1.y;
 
@@ -51,14 +56,13 @@ function Nos() {
 
     return {
       x: mid.x + nx * distance,
-      y: mid.y + ny * distance
+      y: mid.y + ny * distance,
     };
   };
 
   const angleAB = getAngle(A, B);
   const angleBC = getAngle(B, C);
   const angleBD = getAngle(B, D);
-  const angleCD = getAngle(C, D);
 
   const posAB = getOffsetPoint(A, B, midAB);
   const posBC = getOffsetPoint(B, C, midBC);
@@ -66,7 +70,7 @@ function Nos() {
   const [values, setValues] = useState({
     AB: "",
     BC: "",
-    AC: ""
+    AC: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -84,7 +88,7 @@ function Nos() {
     let missing = [];
 
     ["AB", "BC", "AC"].forEach((key) => {
-      if (!values[key]) {
+      if (!values[key] || Number(values[key]) <= 0) {
         newErrors[key] = true;
         missing.push(key);
       }
@@ -93,7 +97,7 @@ function Nos() {
     setErrors(newErrors);
 
     if (missing.length > 0) {
-      setErrorMsg(`${missing.join(", ")} missing`);
+      setErrorMsg(`${missing.join(", ")} missing or invalid`);
       setResult(null);
       return;
     }
@@ -104,45 +108,55 @@ function Nos() {
 
     const AD = (AB * AB + AC * AC - BC * BC) / (2 * AC);
     const CD = (BC * BC + AC * AC - AB * AB) / (2 * AC);
-    const BD = Math.sqrt(AB * AB - AD * AD);
+    const heightSquared = AB * AB - AD * AD;
+
+    if (heightSquared <= 0) {
+      setErrorMsg("The entered sides cannot form a valid triangle.");
+      setResult(null);
+      return;
+    }
+
+    const BD = Math.sqrt(heightSquared);
 
     setResult({
-      AD: AD.toFixed(1),
-      CD: CD.toFixed(1),
-      BD: BD.toFixed(1)
+      AD: AD.toFixed(2),
+      CD: CD.toFixed(2),
+      BD: BD.toFixed(2),
     });
 
     setErrorMsg("");
 
     trackEvent("calculator_used", {
-        calculator_name: "NOS Calculator"
+      calculator_name: "NOS Calculator",
     });
-
   };
 
-  // Midpoints for displaying text inside triangle
-  const midBD = {
-    x: (B.x + D.x) / 2,
-    y: (B.y + D.y) / 2
-  };
-
-  const midCD = {
-    x: (C.x + D.x) / 2,
-    y: (C.y + D.y) / 2
-  };
+  // Helper for responsive percentage-based input positioning
+  const getInputPosition = (pos, angle, error) => ({
+    ...styles.input,
+    top: `${(pos.y / VIEW_HEIGHT) * 100}%`,
+    left: `${(pos.x / VIEW_WIDTH) * 100}%`,
+    transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+    border: error ? "2px solid red" : "1px solid #ccc",
+  });
 
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>NOS Calculator</h1>
 
-      <div style={styles.canvas}>
-        <svg width="400" height="360">
+      <div style={styles.canvasWrapper}>
+        <svg
+          viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+          style={styles.svg}
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {/* Main Triangle */}
           <polygon
             points={`${A.x},${A.y} ${C.x},${C.y} ${B.x},${B.y}`}
             style={styles.triangle}
           />
 
-          {/* Blue dashed line */}
+          {/* Perpendicular / Offset line (B to D) */}
           <line
             x1={B.x}
             y1={B.y}
@@ -151,115 +165,64 @@ function Nos() {
             style={styles.dashedLine}
           />
 
-          {/* D point */}
-          <circle cx={D.x} cy={D.y} r="4" fill="black" />
-          <text x={D.x + 5} y={D.y - 5} fill="black">D</text>
+          {/* D Point Indicator */}
+          <circle cx={D.x} cy={D.y} r="4" fill="#111" />
+          <text x={D.x + 8} y={D.y - 8} style={styles.vertexLabel}>
+            D
+          </text>
 
-          {/* Labels */}
-          <text x={A.x - 5} y={A.y + 15}>A</text>
-          <text x={C.x + 5} y={C.y + 15}>C</text>
-          <text x={B.x - 5} y={B.y - 10}>B</text>
+          {/* Corner Labels */}
+          <text x={A.x - 18} y={A.y + 10} style={styles.vertexLabel}>
+            A
+          </text>
+          <text x={C.x + 8} y={C.y + 10} style={styles.vertexLabel}>
+            C
+          </text>
+          <text x={B.x} y={B.y - 12} style={styles.vertexLabel} textAnchor="middle">
+            B
+          </text>
 
-          {/* 🔴 AD & CD values inside triangle */}
+          {/* Results Displayed Inside Diagram */}
           {result && (
-          <>
-            {result && (
-              <>
-                {/* AD value between A and D */}
-                <text
-                  x={(A.x + D.x) / 2}
-                  y={A.y - 10}
-                  fill="red"
-                  fontSize="14"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                >
-                  {result.AD}
-                </text>
+            <>
+              {/* AD Value */}
+              <text
+                x={(A.x + D.x) / 2}
+                y={A.y - 10}
+                style={styles.resultValue}
+              >
+                {result.AD}
+              </text>
 
-                {/* CD value between D and C */}
-                <text
-                  x={(D.x + C.x) / 2}
-                  y={C.y - 10}
-                  fill="red"
-                  fontSize="14"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                >
-                  {result.CD}
-                </text>
+              {/* CD Value */}
+              <text
+                x={(D.x + C.x) / 2}
+                y={C.y - 10}
+                style={styles.resultValue}
+              >
+                {result.CD}
+              </text>
 
-                {/* 🔴 BD value ABOVE BD line */}
-                {result && (() => {
-                  const midX = (B.x + D.x) / 2;
-                  const midY = (B.y + D.y) / 2;
-
-                  // direction vector BD
-                  let dx = D.x - B.x;
-                  let dy = D.y - B.y;
-
-                  // perpendicular vector
-                  let nx = -dy;
-                  let ny = dx;
-
-                  // normalize
-                  const length = Math.sqrt(nx * nx + ny * ny);
-                  nx /= length;
-                  ny /= length;
-
-                  // move text outward (adjust 12–18 if needed)
-                  const offset = 15;
-
-                  const textX = midX + nx * offset;
-                  const textY = midY + ny * offset;
-
-                  return (
-                    <text
-                      x={textX}
-                      y={textY}
-                      fill="red"
-                      fontSize="14"
-                      fontWeight="bold"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      transform={`rotate(${angleBD}, ${textX}, ${textY})`}
-                    >
-                      {result.BD}
-                    </text>
-                  );
-                })()}
-              </>
-            )}
-          </>
-        )}
+              {/* BD Height Value */}
+              <text
+                x={(B.x + D.x) / 2 - 16}
+                y={(B.y + D.y) / 2}
+                style={styles.resultValue}
+                transform={`rotate(${angleBD}, ${(B.x + D.x) / 2 - 16}, ${(B.y + D.y) / 2})`}
+              >
+                {result.BD}
+              </text>
+            </>
+          )}
         </svg>
 
-        {/* Inputs */}
-        <input
-          type="number"
-          placeholder="AC"
-          value={values.AC}
-          onChange={(e) => handleChange("AC", e.target.value)}
-          style={{
-            ...styles.input,
-            top: D.y + 12,
-            left: D.x - 35,
-            border: errors.AC ? "2px solid red" : "1px solid #ccc"
-          }}
-        />
-
+        {/* Floating Input Boxes */}
         <input
           type="number"
           placeholder="AB"
           value={values.AB}
           onChange={(e) => handleChange("AB", e.target.value)}
-          style={{
-            ...styles.input,
-            top: posAB.y,
-            left: posAB.x - 35,
-            transform: `rotate(${angleAB}deg)`,
-            border: errors.AB ? "2px solid red" : "1px solid #ccc"
-          }}
+          style={getInputPosition(posAB, angleAB, errors.AB)}
         />
 
         <input
@@ -267,30 +230,32 @@ function Nos() {
           placeholder="BC"
           value={values.BC}
           onChange={(e) => handleChange("BC", e.target.value)}
-          style={{
-            ...styles.input,
-            top: posBC.y,
-            left: posBC.x - 35,
-            transform: `rotate(${angleBC}deg)`,
-            border: errors.BC ? "2px solid red" : "1px solid #ccc"
-          }}
+          style={getInputPosition(posBC, angleBC, errors.BC)}
+        />
+
+        <input
+          type="number"
+          placeholder="AC"
+          value={values.AC}
+          onChange={(e) => handleChange("AC", e.target.value)}
+          style={getInputPosition({ x: D.x, y: D.y + 24 }, 0, errors.AC)}
         />
       </div>
 
-      {/* Error */}
+      {/* Error Message */}
       {errorMsg && <div style={styles.error}>{errorMsg}</div>}
 
-      {/* Button */}
+      {/* Action Button */}
       <button onClick={handleCalculate} style={styles.button}>
         Calculate
       </button>
 
-      {/* Result */}
+      {/* Result Card */}
       {result && (
-        <div style={{ marginTop: "15px", fontSize: "16px", color: "black" }}>
-          <div><b>AD = {result.AD}</b></div>
-          <div><b>CD = {result.CD}</b></div>
-          <div><b>BD (height) = {result.BD}</b></div>
+        <div style={styles.resultCard}>
+          <div><b>AD:</b> {result.AD} m</div>
+          <div><b>CD:</b> {result.CD} m</div>
+          <div><b>BD (Height):</b> {result.BD} m</div>
         </div>
       )}
     </div>
@@ -300,54 +265,98 @@ function Nos() {
 const styles = {
   container: {
     textAlign: "center",
-    marginTop: "40px",
-    fontFamily: "Arial"
+    marginTop: "20px",
+    padding: "0 10px 40px 10px",
+    fontFamily: "Arial, sans-serif",
+    width: "100%",
+    maxWidth: "500px",
+    margin: "0 auto",
+    boxSizing: "border-box",
   },
   title: {
-    marginBottom: "20px"
+    marginBottom: "15px",
+    color: "#1f2937",
+    fontSize: "1.5rem",
   },
-  canvas: {
+  canvasWrapper: {
     position: "relative",
-    width: "300px",
-    margin: "auto"
+    width: "100%",
+    maxWidth: "380px",
+    aspectRatio: `${VIEW_WIDTH} / ${VIEW_HEIGHT}`,
+    margin: "0 auto 10px auto",
+  },
+  svg: {
+    width: "100%",
+    height: "100%",
+    display: "block",
   },
   triangle: {
-    fill: "#f9fafb",
-    stroke: "#333",
-    strokeWidth: 2
+    fill: "#f8fafc",
+    stroke: "#1e293b",
+    strokeWidth: 2.5,
   },
   dashedLine: {
-    stroke: "red",
+    stroke: "#dc2626",
     strokeWidth: 2,
-    strokeDasharray: "5,5"
+    strokeDasharray: "5,5",
+  },
+  vertexLabel: {
+    fontSize: "16px",
+    fontWeight: "bold",
+    fill: "#0f172a",
+    fontFamily: "Arial, sans-serif",
+  },
+  resultValue: {
+    fill: "#dc2626",
+    fontSize: "13px",
+    fontWeight: "bold",
+    textAnchor: "middle",
+    dominantBaseline: "middle",
   },
   input: {
     position: "absolute",
-    width: "70px",
-    padding: "4px",
+    width: "62px",
+    height: "30px",
+    padding: "2px",
     textAlign: "center",
     borderRadius: "6px",
-    outline: "none"
+    outline: "none",
+    background: "#ffffff",
+    fontSize: "12px",
+    fontWeight: "bold",
+    zIndex: 10,
+    boxSizing: "border-box",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
   },
   button: {
     marginTop: "15px",
-    padding: "10px 18px",
+    padding: "10px 24px",
     fontSize: "15px",
+    fontWeight: "600",
     background: "#2563eb",
-    color: "white",
+    color: "#ffffff",
     border: "none",
     borderRadius: "6px",
-    cursor: "pointer"
+    cursor: "pointer",
+    width: "100%",
+    maxWidth: "200px",
   },
   error: {
-    color: "red",
-    marginTop: "10px"
+    color: "#dc2626",
+    marginTop: "10px",
+    fontSize: "14px",
   },
-  resultText: {
-    fill: "red",
-    fontSize: "12px",
-    fontWeight: "bold"
-  }
+  resultCard: {
+    marginTop: "20px",
+    padding: "12px",
+    background: "#f0f9ff",
+    border: "1px solid #bae6fd",
+    borderRadius: "8px",
+    color: "#0369a1",
+    fontSize: "15px",
+    lineHeight: "1.8",
+    textAlign: "center",
+  },
 };
 
 export default Nos;

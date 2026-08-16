@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-export default function DrawingPanel({ isOpen, onClose, onSave, initialData, width = 550, height = 320 }) {
+export default function DrawingPanel({ isOpen, onClose, onSave, initialData, width, height}) {
   const svgRef = useRef(null);
   const PANEL_WIDTH = width;
   const PANEL_HEIGHT = height;
@@ -359,7 +359,17 @@ export default function DrawingPanel({ isOpen, onClose, onSave, initialData, wid
               </form>
             )}
 
-            <svg ref={svgRef} width={PANEL_WIDTH} height={PANEL_HEIGHT} viewBox={`0 0 ${PANEL_WIDTH} ${PANEL_HEIGHT}`} preserveAspectRatio="xMidYMid meet" onClick={handleCanvasInteraction} onPointerMove={handleLabelDrag} onPointerUp={() => setDraggingLabelIndex(null)} className="border border-slate-200 rounded shadow-inner bg-white block mx-auto relative touch-none" style={{ maxWidth: '100%', height: 'auto', touchAction: 'none' }}>
+              <svg 
+                ref={svgRef} 
+                width={PANEL_WIDTH || "100%"} 
+                height={PANEL_HEIGHT || "80%"} 
+                viewBox={`0 0 ${PANEL_WIDTH || "100%"} ${PANEL_HEIGHT || "80%"}`}
+                onClick={handleCanvasInteraction} 
+                onPointerMove={handleLabelDrag} 
+                onPointerUp={() => setDraggingLabelIndex(null)} 
+                className="border border-slate-200 rounded shadow-inner bg-white block mx-auto relative touch-none" 
+                style={{ touchAction: 'none' }}
+              >              
               <g>
                 {/* FIRL Extensions */}
                 {fmbData.firlExtensions?.map((ext, idx) => {
@@ -435,12 +445,12 @@ export default function DrawingPanel({ isOpen, onClose, onSave, initialData, wid
       </div>
 
       <style>{`
-        .drawing-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 10px; }
-        .drawing-modal-container { background: white; width: 100%; max-width: 620px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); display: flex; flex-direction: column; overflow: hidden; max-height: 95vh; }
+        .drawing-modal-overlay { position: fixed; top: 7%; left: 0; right: 0; bottom: 5%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; padding: 10px; }
+        .drawing-modal-container { background: white; width: 100%; height: 100%; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); display: flex; flex-direction: column; overflow: hidden;  }
         .drawing-modal-header { padding: 12px 16px; color: #2b6cb0; display: flex; justify-content: space-between; align-items: center; }
         .drawing-modal-title { margin: 0; font-size: 14px; font-weight: bold; }
         .modal-close-btn { color: #dc2626; background: transparent; border: none; font-size: 32px; cursor: pointer; font-weight: bold; padding: 0 5px; }
-        .drawing-modal-body { padding: 12px; overflow-y: auto; }
+        .drawing-modal-body { padding: 12px; overflow-y: auto; flex:1, display:flex; flex-direction: column }
         .drawing-toolbar { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
         .tool-btn { flex: 1 1 15%; min-width: 60px; padding: 8px 4px; background: #edf2f7; color: #2d3748; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; }
         .tool-btn-active { background: #3182ce !important; color: white !important; border-color: #2b6cb0 !important; }

@@ -136,7 +136,7 @@ function Pythagoras() {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Pythagoras Calculator</h1>
+      <h2 style={styles.title}>Pythagoras Calculator</h2>
 
       <div style={styles.canvas}>
         <svg width="360" height="300">
@@ -255,11 +255,7 @@ function Pythagoras() {
 const styles = {
   container: {
     textAlign: "center",
-    marginTop: "40px",
     fontFamily: "Arial"
-  },
-  title: {
-    marginBottom: "20px"
   },
   canvas: {
     position: "relative",

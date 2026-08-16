@@ -1181,8 +1181,9 @@ const styles = {
   },
   input: {
     position: "absolute",
-    width: "60px",
-    padding: "4px 2px",
+    width: "68px",
+    height: "24px",
+    padding: "2px 4px",
     textAlign: "center",
     borderRadius: "6px",
     outline: "none",
@@ -1201,7 +1202,6 @@ const styles = {
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
-    width: "100%",
     maxWidth: "280px",
   },
   error: {
