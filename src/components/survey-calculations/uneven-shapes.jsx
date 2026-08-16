@@ -629,11 +629,7 @@ function UnevenShapes() {
           The area is calculated as ABC + ADC.
         </p>
         <div style={styles.canvas}>
-          <svg
-            width="420"
-            height="380"
-            viewBox="0 0 420 380"
-          >
+          <svg viewBox="0 0 420 380" style={styles.svg}>
             {/* Outer Shape */}
             <polygon
               points={`
@@ -804,11 +800,7 @@ function UnevenShapes() {
           The area is calculated using Heron's formula.
         </p>
         <div style={styles.canvas}>
-          <svg
-            width="420"
-            height="350"
-            viewBox="0 0 420 350"
-          >
+          <svg viewBox="0 0 420 350" style={styles.svg}>
             {/* Triangle Shape */}
             <polygon
               points={`
@@ -916,11 +908,7 @@ function UnevenShapes() {
           The area is calculated as ABC + ACE + CED.
         </p>
         <div style={styles.canvas}>
-          <svg
-            width="420"
-            height="400"
-            viewBox="0 0 420 400"
-          >
+          <svg viewBox="0 0 420 400" style={styles.svg}>
             {/* Pentagon */}
             <polygon
               points={`
@@ -1135,9 +1123,13 @@ function UnevenShapes() {
 const styles = {
   container: {
     textAlign: "center",
-    marginTop: "40px",
+    marginTop: "20px",
     paddingBottom: "50px",
     fontFamily: "Arial",
+    width: "100%",
+    maxWidth: "100vw",
+    overflowX: "hidden",
+    boxSizing: "border-box",
   },
   title: {
     marginBottom: "25px",
@@ -1145,31 +1137,36 @@ const styles = {
   },
   card: {
     width: "95%",
-    maxWidth: "700px",
-    margin: "0 auto 40px auto",
-    padding: "20px",
+    maxWidth: "600px",
+    margin: "0 auto 30px auto",
+    padding: "15px",
     boxSizing: "border-box",
     borderRadius: "10px",
     background: "#ffffff",
-    boxShadow:
-      "0 2px 8px rgba(0,0,0,0.12)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
   },
   heading: {
     marginBottom: "10px",
     color: "#222",
+    fontSize: "1.3rem",
   },
   description: {
     color: "#555",
-    fontSize: "14px",
+    fontSize: "13px",
     marginBottom: "15px",
   },
   canvas: {
     position: "relative",
-    width: "420px",
-    maxWidth: "100%",
-    height: "400px",
-    margin: "auto",
+    width: "100%",
+    maxWidth: "420px",
+    aspectRatio: "420 / 380",
+    margin: "0 auto",
     overflow: "visible",
+  },
+  svg: {
+    width: "100%",
+    height: "100%",
+    display: "block",
   },
   shape: {
     fill: "#f9fafb",
@@ -1188,15 +1185,16 @@ const styles = {
   },
   input: {
     position: "absolute",
-    width: "70px",
-    padding: "4px",
+    width: "60px",
+    padding: "4px 2px",
     textAlign: "center",
     borderRadius: "6px",
     outline: "none",
     background: "white",
-    fontSize: "13px",
+    fontSize: "12px",
     zIndex: 10,
     boxSizing: "border-box",
+    transformOrigin: "center center",
   },
   button: {
     marginTop: "15px",
@@ -1207,6 +1205,8 @@ const styles = {
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
+    width: "100%",
+    maxWidth: "280px",
   },
   error: {
     color: "red",
@@ -1215,7 +1215,7 @@ const styles = {
   },
   result: {
     marginTop: "20px",
-    fontSize: "16px",
+    fontSize: "15px",
     color: "black",
     lineHeight: "1.8",
   },
@@ -1225,7 +1225,7 @@ const styles = {
     borderRadius: "6px",
     background: "#eff6ff",
     color: "#1d4ed8",
-    fontSize: "18px",
+    fontSize: "16px",
     fontWeight: "bold",
   },
 };

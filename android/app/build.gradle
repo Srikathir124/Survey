@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "sri.kathiravan"
+    namespace "in.srikathiravan.survey"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "sri.kathiravan"
+        applicationId "in.srikathiravan.survey"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -21,7 +21,6 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
 }
