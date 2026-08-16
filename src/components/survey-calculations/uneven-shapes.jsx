@@ -3,6 +3,8 @@ import AreaConversion from "./areaconversion";
 import { trackEvent } from "../../utils/analytics.js";
 
 function UnevenShapes() {
+  const SVG_BASE_WIDTH = 420;
+  const SVG_BASE_HEIGHT = 380;
   // =========================================================
   // QUADRILATERAL ABCD
   //
@@ -598,18 +600,12 @@ function UnevenShapes() {
   // =========================================================
   // COMMON INPUT STYLE
   // =========================================================
-  const getInputStyle = (
-    position,
-    angle,
-    error
-  ) => ({
+  const getInputStyle = (position, angle, error, baseHeight = SVG_BASE_HEIGHT) => ({
     ...styles.input,
-    top: position.y - 15,
-    left: position.x - 35,
-    transform: `rotate(${angle}deg)`,
-    border: error
-      ? "2px solid red"
-      : "1px solid #ccc",
+    top: `${(position.y / baseHeight) * 100}%`,
+    left: `${(position.x / SVG_BASE_WIDTH) * 100}%`,
+    transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+    border: error ? "2px solid red" : "1px solid #ccc",
   });
   // =========================================================
   // RENDER
@@ -851,7 +847,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handleTriChange("AB", e.target.value)
             }
-            style={getInputStyle(triAB, triAngleAB, triErrors.AB)}
+            style={getInputStyle(triAB, triAngleAB, triErrors.AB, 350)}
           />
           {/* BC INPUT */}
           <input
@@ -861,7 +857,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handleTriChange("BC", e.target.value)
             }
-            style={getInputStyle(triBC, triAngleBC, triErrors.BC)}
+            style={getInputStyle(triBC, triAngleBC, triErrors.BC, 350)}
           />
           {/* CA INPUT */}
           <input
@@ -871,7 +867,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handleTriChange("CA", e.target.value)
             }
-            style={getInputStyle(triCA, triAngleCA, triErrors.CA)}
+            style={getInputStyle(triCA, triAngleCA, triErrors.CA, 350)}
           />
         </div>
         {/* Error */}
@@ -991,7 +987,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handlePentChange("AB", e.target.value)
             }
-            style={getInputStyle(pentAB, pentAngleAB, pentErrors.AB)}
+            style={getInputStyle(pentAB, pentAngleAB, pentErrors.AB, 400)}
           />
           {/* BC */}
           <input
@@ -1001,7 +997,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handlePentChange("BC", e.target.value)
             }
-            style={getInputStyle(pentBC, pentAngleBC, pentErrors.BC)}
+            style={getInputStyle(pentBC, pentAngleBC, pentErrors.BC, 400)}
           />
           {/* CD */}
           <input
@@ -1011,7 +1007,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handlePentChange("CD", e.target.value)
             }
-            style={getInputStyle(pentCD, pentAngleCD, pentErrors.CD)}
+            style={getInputStyle(pentCD, pentAngleCD, pentErrors.CD, 400)}
           />
           {/* DE */}
           <input
@@ -1021,7 +1017,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handlePentChange("DE", e.target.value)
             }
-            style={getInputStyle(pentDE, pentAngleDE, pentErrors.DE)}
+            style={getInputStyle(pentDE, pentAngleDE, pentErrors.DE, 400)}
           />
           {/* EA */}
           <input
@@ -1031,7 +1027,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handlePentChange("EA", e.target.value)
             }
-            style={getInputStyle(pentEA, pentAngleEA, pentErrors.EA)}
+            style={getInputStyle(pentEA, pentAngleEA, pentErrors.EA, 400)}
           />
           {/* AC */}
           <input
@@ -1041,7 +1037,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handlePentChange("AC", e.target.value)
             }
-            style={getInputStyle(pentAC, pentAngleAC, pentErrors.AC)}
+            style={getInputStyle(pentAC, pentAngleAC, pentErrors.AC, 400)}
           />
           {/* CE */}
           <input
@@ -1051,7 +1047,7 @@ function UnevenShapes() {
             onChange={(e) =>
               handlePentChange("CE", e.target.value)
             }
-            style={getInputStyle(pentCE, pentAngleCE, pentErrors.CE)}
+            style={getInputStyle(pentCE, pentAngleCE, pentErrors.CE, 400)}
           />
         </div>
         {/* Error */}
