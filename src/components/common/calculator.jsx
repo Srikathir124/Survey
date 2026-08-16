@@ -188,8 +188,8 @@ function Calculator({ panel = "quarter" }) {
         .length-panel .calculator.full .calc-buttons button { height: 56px; font-size: 20px; border-radius: 8px; touch-action: manipulation; }
         .length-panel .calculator.quarter .calc-display { height: 58px; font-size: 22px; line-height: normal; padding: 4px 12px; }
         .length-panel .calculator.full .calc-display { height: 95px; font-size: 38px; line-height: normal; padding: 8px 16px; }
-        .length-panel .calc-expression { height: 26px; color: #526047; font-size: 0.42em; line-height: 26px; overflow: hidden; text-overflow: ellipsis; }
-        .length-panel .calc-result { color: #111827; font-size: 1em; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; }
+        .length-panel .calc-expression { height: 26px; color: #526047; font-size: 0.42em; line-height: 26px; white-space: nowrap; }
+        .length-panel .calc-result { color: #111827; font-size: 1em; line-height: 1.35; white-space: nowrap; }
         .length-panel .calc-buttons button { background: #111827; color: white; border: none; border-radius: 6px; cursor: pointer; width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         .length-panel .btn-operator { background-color: #f97316 !important; font-weight: bold !important; }
         .length-panel .calculator.quarter .btn-operator { font-size: 1.0rem !important; }
