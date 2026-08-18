@@ -69,24 +69,31 @@ function Navbar() {
           </button>
           
           <button
-            style={getLinkStyle("/fline")}
-            onClick={() => handleNavigation("/fline")}
+            style={getLinkStyle("/fline-statement")}
+            onClick={() => handleNavigation("/fline-statement")}
           >
             F Line Statement
+          </button>
+          
+          <button
+            style={getLinkStyle("/fline-summon")}
+            onClick={() => handleNavigation("/fline-summon")}
+          >
+            F Line Summon
           </button>
           
           <button
             style={getLinkStyle("/a-reg-correction")}
             onClick={() => handleNavigation("/a-reg-correction")}
           >
-            A-Reg Correction Statement
+            A-Reg Correction Form
           </button>
           
           <button
             style={getLinkStyle("/conversion-quiz")}
             onClick={() => handleNavigation("/conversion-quiz")}
           >
-            Quiz
+            Practice Quiz
           </button>
           
           <button
@@ -97,7 +104,6 @@ function Navbar() {
           </button>
 
           {/* Surveyor Profiles */}
-          {/* Summon Statement */}
           {/* Area Mismatch Statement */}
           {/* G Line Conversion */}
           {/* Q & A */}

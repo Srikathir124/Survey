@@ -126,7 +126,7 @@ function Nos() {
 
     setErrorMsg("");
 
-    trackEvent("calculator_used", {
+    trackEvent("nos_calculator_used", {
       calculator_name: "NOS Calculator",
     });
   };

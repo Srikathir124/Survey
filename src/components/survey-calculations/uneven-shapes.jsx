@@ -276,7 +276,7 @@ function UnevenShapes() {
       isApproximate: false,
     });
     setQuadErrorMsg("");    
-    trackEvent("calculator_used", {
+    trackEvent("Quadilateral_calculator_used", {
             calculator_name: "Quadilateral Area"
     });
   };
@@ -322,7 +322,7 @@ function UnevenShapes() {
     });
     setTriErrorMsg("");
     
-    trackEvent("calculator_used", {
+    trackEvent("Triangle_calculator_used", {
             calculator_name: "Triangle Area"
     });
   };
@@ -458,7 +458,7 @@ function UnevenShapes() {
       isApproximate: false,
     });
     setPentErrorMsg("");
-    trackEvent("calculator_used", {
+    trackEvent("Pentagon_calculator_used", {
             calculator_name: "Pentagon Area"
     });
   };

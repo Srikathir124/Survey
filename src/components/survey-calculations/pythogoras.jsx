@@ -128,7 +128,7 @@ function Pythagoras() {
     }
 
     setResult(res);
-    trackEvent("calculator_used", {
+    trackEvent("Pythagoras_calculator_used", {
         calculator_name: "Pythagoras Calculator"
     });
 

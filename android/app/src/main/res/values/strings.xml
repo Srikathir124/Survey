@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">surveyor works</string>
-    <string name="title_activity_main">surveyor works</string>
-    <string name="package_name">sri.kathiravan</string>
-    <string name="custom_url_scheme">sri.kathiravan</string>
+    <string name="app_name">Surveyor Works</string>
+    <string name="title_activity_main">Surveyor Works</string>
+    <string name="package_name">in.srikathiravan.survey</string>
+    <string name="custom_url_scheme">in.srikathiravan</string>
 </resources>

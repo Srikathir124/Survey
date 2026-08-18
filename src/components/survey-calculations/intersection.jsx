@@ -74,7 +74,7 @@ export default function OffsetIntersectionUI() {
     });
 
     setError("");
-    trackEvent("calculator_used", {
+    trackEvent("intersection_calculator_used", {
         calculator_name: "Intersection Calculator"
     });
 

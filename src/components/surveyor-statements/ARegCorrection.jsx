@@ -206,7 +206,7 @@ export default function AreaCorrection() {
             window.print();
             document.title = originalTitle;
           }
-          trackEvent("pdf_generated", { document_name: fileName });
+          trackEvent("A_Reg_pdf_generated", { document_name: fileName });
         }}
       />
 

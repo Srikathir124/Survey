@@ -9,6 +9,7 @@ import Nos from "./components/survey-calculations/nos";
 import OffsetIntersectionUI from "./components/survey-calculations/intersection";
 import NotesPanel from "./components/common/notes";
 import FLineReport from "./components/surveyor-statements/fline";
+import FLineSummon from "./components/surveyor-statements/FLineSummon";
 import ARegCorrection from "./components/surveyor-statements/ARegCorrection";
 import DepartmentalExam from "./components/departmental-exam/departmentalexam";
 import ConversionQuiz from "./components/departmental-exam/conversionquiz";
@@ -25,7 +26,8 @@ function App() {
           <Route path="/pythagoras" element={<Pythagoras />} />
           <Route path="/nos" element={<Nos />} />
           <Route path="/intersection" element={<OffsetIntersectionUI />} />
-          <Route path="/fline" element={<FLineReport />} />
+          <Route path="/fline-statement" element={<FLineReport />} />
+          <Route path="/fline-summon" element={<FLineSummon />} />
           <Route path="/a-reg-correction" element={<ARegCorrection />} />
           <Route path="/conversion-quiz" element={<ConversionQuiz />} />
           <Route path="/departmental-exam" element={<DepartmentalExam />} />
